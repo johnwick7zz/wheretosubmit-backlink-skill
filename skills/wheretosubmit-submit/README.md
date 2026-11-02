@@ -14,8 +14,10 @@ as submitted after it saw a confirmation.
 
 - A Where To Submit account. Reading targets works on every plan; recording
   progress needs Pro.
-- An agent with a browser tool (Claude in Chrome, the desktop built-in
-  browser, ego-browser, Playwright MCP, or similar).
+- An agent with a browser tool. Recommended: ego-browser
+  (https://lite.ego.app/, macOS and Windows), which is what we test with: you
+  and the agent share one window, so you can watch and take over a CAPTCHA.
+  Claude in Chrome, the desktop built-in browser and Playwright MCP work too.
 - Optional: a mail tool (Gmail MCP, an IMAP script, or similar) for sites
   that confirm by email.
 - Optional: Node 20+ for the profile check script.

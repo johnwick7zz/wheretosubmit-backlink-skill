@@ -14,8 +14,10 @@ What you need:
 
 - The `wheretosubmit` MCP server. Reading works on every plan; recording
   progress (`mark_status`, `create_project`, `update_project`) needs Pro.
-- A browser tool. Use whichever is available in this environment (Claude in
-  Chrome, the desktop built-in browser, ego-browser, Playwright MCP, ...).
+- A browser tool. Use whichever is available in this environment. ego-browser
+  is the one this skill is tested with (the user shares the window and can
+  take over a CAPTCHA); Claude in Chrome, the desktop built-in browser and
+  Playwright MCP also work.
 - A mail tool for sites that verify by email. Use whichever is available
   (Gmail MCP, an IMAP script, ...). Without one, those sites are skipped.
 - Node 20+ to run `scripts/preflight.mjs` (optional but recommended).

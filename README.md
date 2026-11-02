@@ -22,8 +22,11 @@ profile, one site at a time, and record what happened.
 - An MCP token. Sign in, open **Account**, find **MCP for AI agents**, give
   the token a name and click **Generate token**. Copy it right away, it is
   shown once. It starts with `wts_`. Treat it like a password.
-- A browser tool in your agent: Claude in Chrome, the Claude desktop built-in
-  browser, Playwright MCP, or similar. Without one the agent stops.
+- A browser tool in your agent. We run our own submissions with
+  [ego-browser](https://lite.ego.app/) (macOS and Windows): the agent and you
+  share one window, so you can watch it fill a form and take over a CAPTCHA
+  without switching anything. Claude in Chrome, the Claude desktop built-in
+  browser and Playwright MCP work too. Without one the agent stops.
 - Optional: a mail tool (Gmail MCP, an IMAP script, or similar) for sites
   that confirm by email. Without one, those sites are skipped.
 - Optional: Node 20+ to run the profile check script.

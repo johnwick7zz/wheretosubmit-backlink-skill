@@ -12,7 +12,7 @@
 
 - 一个 [wheretosubmit.org](https://wheretosubmit.org) 账户。读目标站所有套餐都行，记录进度（`mark_status`）和建项目要 Pro。
 - 一个 MCP 令牌。登录后打开 **账户** 页，找到 **MCP（给 AI agent 用）**，起个名字，点 **生成令牌**。马上复制，它只显示这一次，开头是 `wts_`，当密码保管。
-- agent 里要有浏览器工具：Claude in Chrome、Claude 桌面版自带的浏览器、Playwright MCP 之类。没有的话 agent 会直接停下。
+- agent 里要有浏览器工具。我们自己提交用的是 [ego-browser](https://lite.ego.app/)（macOS 和 Windows 都有）：agent 和你共用一个窗口，它填表你在旁边看着，碰到验证码直接上手，不用切来切去。Claude in Chrome、Claude 桌面版自带的浏览器、Playwright MCP 也都能用。没有的话 agent 会直接停下。
 - 可选：一个能读邮件的工具（Gmail MCP、IMAP 脚本之类），给要邮件确认的站用。没有就跳过那些站。
 - 可选：Node 20 以上，用来跑资料检查脚本。
 
