@@ -87,7 +87,7 @@ and flags a project when its domain is the same as the new `productUrl`, or
 when the names match after cleanup (case, spaces and a trailing `.com`/`.io`/
 `.ai` and so on are ignored). A name also matches when one is the start of the
 other, when it equals the other project's domain without the TLD
-(`scientificfigure` vs `scientificfigure.com`), or when the two names are at
+(`myapp` vs `myapp.com`), or when the two names are at
 most 2 edits apart (both at least 5 characters). If anything is flagged and
 `confirm` isn't `true`, nothing is created. You get `possible_duplicate` with
 `candidates: [{ id, name, productUrl, domain, reason }]`. The agent should only
