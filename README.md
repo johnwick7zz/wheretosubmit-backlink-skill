@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://wheretosubmit.org"><img src="assets/banner.jpg" alt="Where To Submit: launch and backlink directory for indie hackers" width="800"></a>
+</p>
+
+<p align="center">English · <a href="README.zh.md">简体中文</a></p>
+
 # Where To Submit agent skill
 
 This repository lets your AI agent submit your product to the directories and
