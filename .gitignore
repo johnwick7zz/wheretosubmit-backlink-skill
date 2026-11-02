@@ -1,0 +1,17 @@
+# Submission workspace: screenshots and other proof stay local
+.wheretosubmit/evidence/
+
+# OS junk
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~

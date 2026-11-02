@@ -1,0 +1,22 @@
+{
+  "name": "wheretosubmit",
+  "displayName": "Where To Submit",
+  "version": "0.1.0",
+  "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org, one site at a time in a real browser, and record progress through the Where To Submit MCP.",
+  "author": {
+    "name": "Where To Submit",
+    "url": "https://wheretosubmit.org"
+  },
+  "homepage": "https://wheretosubmit.org",
+  "repository": "https://github.com/johnwick7zz/wheretosubmit-backlink-skill",
+  "license": "MIT",
+  "keywords": [
+    "directories",
+    "backlinks",
+    "launch",
+    "submission",
+    "mcp"
+  ],
+  "privacyPolicyUrl": "https://wheretosubmit.org/privacy",
+  "termsOfServiceUrl": "https://wheretosubmit.org/terms"
+}

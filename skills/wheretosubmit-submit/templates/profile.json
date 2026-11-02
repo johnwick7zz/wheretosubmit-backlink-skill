@@ -1,0 +1,84 @@
+{
+  "_help": "Where To Submit product profile. Replace every value that starts with TODO, or set it to null if it does not apply. Keys that start with _ are notes and are ignored. A text key that ends in a number is a hard limit in characters: tagline60 must be 60 characters or fewer. Never put passwords, API keys or card details in this file. Run scripts/preflight.mjs after editing.",
+  "schema": "wheretosubmit-profile/v1",
+  "updatedAt": "TODO: YYYY-MM-DD",
+  "source": "TODO: where these facts came from, e.g. homepage, /pricing and JSON-LD read on 2026-11-02, confirmed by the owner",
+
+  "product": {
+    "_help": "Facts about the product. name and url are required. url is the root of the product site, not a deep page. categories and tags are your own words; the agent maps them to each site's options live.",
+    "name": "TODO: Product name",
+    "url": "TODO: https://example.com",
+    "alternateNames": [],
+    "pricingUrl": null,
+    "launchedAt": null,
+    "platforms": ["Web"],
+    "categories": ["TODO: main category, e.g. Developer Tools"],
+    "tags": ["TODO: tag one", "TODO: tag two"],
+    "audience": ["TODO: who it is for, e.g. Indie developers"],
+    "languages": ["en"]
+  },
+
+  "copy": {
+    "_help": "Descriptions, one object per language (en is required, add zh, fr ... only if you have real copy for them). Each key is <kind><maxChars>. The agent picks the longest variant that fits a site's limit and only shortens or rephrases; it never adds claims. impartial* variants are third person with no we/our, for sites that ask for neutral text. Add more lengths any time, e.g. short250.",
+    "en": {
+      "tagline60": "TODO: one line, 60 characters max",
+      "tagline100": "TODO: one line, 100 characters max",
+      "short160": "TODO: one or two sentences, 160 characters max",
+      "medium500": "TODO: a short paragraph, 500 characters max",
+      "long1500": "TODO: the full description, 1500 characters max",
+      "impartial160": "TODO: neutral third-person summary, 160 characters max",
+      "impartial500": "TODO: neutral third-person paragraph, 500 characters max",
+      "useCases300": "TODO: what people use it for, 300 characters max",
+      "whyUnique300": "TODO: what is different about it, 300 characters max"
+    }
+  },
+
+  "pricing": {
+    "_help": "model is one of: free, freemium, free-trial, paid, open-source, contact. startingPrice is free text such as $9/mo, or null. The agent maps this to each site's pricing dropdown.",
+    "model": "TODO: freemium",
+    "startingPrice": null,
+    "hasFreeTrial": false,
+    "requiresCard": false
+  },
+
+  "assets": {
+    "_help": "Paths are relative to this workspace folder. logoSquare is required: PNG or JPEG at least 512x512 and exactly square, or an SVG. logoWide, ogImage (1200x630) and screenshots are optional but many sites ask for them.",
+    "logoSquare": "assets/logo-512.png",
+    "logoWide": null,
+    "ogImage": null,
+    "screenshots": [],
+    "demoVideoUrl": null
+  },
+
+  "contact": {
+    "_help": "email is required and is the mailbox the agent must be able to read for confirmation codes and links. submitterName is the name typed into 'Your name' fields; founderName is used when a site asks for the founder or maker.",
+    "email": "TODO: you@example.com",
+    "submitterName": null,
+    "founderName": null,
+    "role": null
+  },
+
+  "links": {
+    "_help": "Public profiles of the product or company. Full URLs or null. The agent fills these only into matching fields.",
+    "twitter": null,
+    "linkedin": null,
+    "github": null,
+    "producthunt": null,
+    "youtube": null,
+    "discord": null,
+    "docs": null,
+    "changelog": null
+  },
+
+  "permissions": {
+    "_help": "What the agent may do without asking. allowRegistration: create accounts on directories (default false). allowCaptchaHandoff: fill the form and leave the CAPTCHA for you to solve (default true); the agent never solves CAPTCHAs itself. allowPaid: the agent may take a paid listing to the checkout page and hand it to you; it never enters payment details (default false). neverShare: fields the agent must never fill, even if a site requires them; such sites are skipped.",
+    "allowRegistration": false,
+    "allowCaptchaHandoff": true,
+    "allowPaid": false,
+    "neverShare": ["phone", "streetAddress", "taxId", "companyRegistrationNumber"]
+  },
+
+  "extra": {
+    "_help": "Answers the agent had to ask you, saved so it never asks twice. Key is what the form asked, in camelCase. Values are strings, numbers or booleans. Examples: foundedYear, teamSize, headquartersCountry, companyName."
+  }
+}

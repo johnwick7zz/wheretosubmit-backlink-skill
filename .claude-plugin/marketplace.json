@@ -1,0 +1,17 @@
+{
+  "name": "wheretosubmit",
+  "description": "Where To Submit agent skill and MCP server for directory and launch-site submissions.",
+  "owner": {
+    "name": "Where To Submit",
+    "url": "https://wheretosubmit.org"
+  },
+  "plugins": [
+    {
+      "name": "wheretosubmit",
+      "source": "./",
+      "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org, one site at a time in a real browser, and record progress through the Where To Submit MCP.",
+      "category": "marketing",
+      "tags": ["directories", "backlinks", "launch", "mcp"]
+    }
+  ]
+}

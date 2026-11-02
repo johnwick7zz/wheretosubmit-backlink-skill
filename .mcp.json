@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "wheretosubmit": {
+      "type": "http",
+      "url": "https://wheretosubmit.org/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${WHERETOSUBMIT_TOKEN}"
+      }
+    }
+  }
+}
