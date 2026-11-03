@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where To Submit report</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a1a; --muted: #6b6b6b; --line: #e4e4e4; --soft: #f6f6f6;
+    --approved: #1b7f3b; --submitted: #1f5fbf; --rejected: #b4232c; --unusable: #7a7a7a; --unmarked: #a05a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #121212; --fg: #ececec; --muted: #9a9a9a; --line: #2c2c2c; --soft: #1c1c1c;
+      --approved: #5fd38a; --submitted: #7fb0ff; --rejected: #ff7b84; --unusable: #a0a0a0; --unmarked: #ffb45e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 24px 64px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .sub a { color: inherit; }
+  .counts { display: flex; flex-wrap: wrap; gap: 18px 28px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .counts div { display: flex; align-items: baseline; gap: 8px; }
+  .counts b { font-size: 20px; font-weight: 600; }
+  .counts span { color: var(--muted); }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .bar label { color: var(--muted); }
+  .bar select, .bar input { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  .bar input { min-width: 220px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+  tbody tr:hover { background: var(--soft); }
+  td.site b { display: block; }
+  td.site span { color: var(--muted); font-size: 12px; }
+  .status { font-weight: 600; white-space: nowrap; }
+  .status.approved { color: var(--approved); }
+  .status.submitted { color: var(--submitted); }
+  .status.rejected { color: var(--rejected); }
+  .status.unusable { color: var(--unusable); }
+  .status.unmarked { color: var(--unmarked); }
+  .followup { display: inline-block; margin-top: 3px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; }
+  td.evidence { max-width: 440px; color: var(--fg); word-break: break-word; }
+  td a { color: var(--submitted); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  td.when { white-space: nowrap; color: var(--muted); font-size: 12px; }
+  .todo { margin-top: 32px; }
+  .todo h2 { font-size: 16px; margin: 0 0 8px; }
+  .todo ul { margin: 0; padding-left: 20px; }
+  .todo li { margin: 4px 0; }
+  .empty { color: var(--muted); padding: 24px 0; text-align: center; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Where To Submit report</h1>
+  <p class="sub" id="sub"></p>
+  <div class="counts" id="counts"></div>
+  <div class="bar">
+    <label for="status">Status</label>
+    <select id="status">
+      <option value="">all</option>
+      <option value="approved">approved</option>
+      <option value="submitted">submitted</option>
+      <option value="rejected">rejected</option>
+      <option value="unusable">unusable</option>
+      <option value="unmarked">unmarked</option>
+    </select>
+    <label for="followup">Follow-up</label>
+    <select id="followup">
+      <option value="">any</option>
+      <option value="badge">badge</option>
+      <option value="verify_email">verify_email</option>
+      <option value="awaiting_review">awaiting_review</option>
+    </select>
+    <input id="q" type="search" placeholder="Filter by site or evidence">
+  </div>
+  <table>
+    <thead>
+      <tr><th>Site</th><th>Status</th><th>Check</th><th>Evidence</th><th>Screenshot</th><th>Updated</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No sites match.</div>
+  <section class="todo" id="todo" hidden>
+    <h2>Needs you</h2>
+    <ul id="todo-list"></ul>
+  </section>
+  <footer id="footer"></footer>
+</main>
+
+<!-- The agent replaces the JSON below on every run. Shape: see SKILL.md "Report file". -->
+<script id="data" type="application/json">
+{
+  "project": { "name": "", "productUrl": "" },
+  "generatedAt": "",
+  "sites": []
+}
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  /** Reads the embedded JSON; a broken block renders an empty report instead of a blank page. */
+  function readData() {
+    try {
+      var el = document.getElementById('data');
+      var parsed = JSON.parse(el ? el.textContent : '{}');
+      return {
+        project: parsed.project || {},
+        generatedAt: parsed.generatedAt || '',
+        sites: Array.isArray(parsed.sites) ? parsed.sites : []
+      };
+    } catch (e) {
+      return { project: {}, generatedAt: '', sites: [] };
+    }
+  }
+
+  var STATUSES = ['approved', 'submitted', 'rejected', 'unusable', 'unmarked'];
+
+  function text(value) { return value === null || value === undefined ? '' : String(value); }
+
+  function isHttp(url) { return /^https?:\/\//i.test(url); }
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (key) {
+      if (key === 'text') node.textContent = attrs[key];
+      else node.setAttribute(key, attrs[key]);
+    });
+    (children || []).forEach(function (child) { if (child) node.appendChild(child); });
+    return node;
+  }
+
+  /** External links open in a new tab; non-http values are shown as plain text. */
+  function link(url, label) {
+    if (!url) return null;
+    if (!isHttp(url)) return el('span', { text: label || url });
+    return el('a', { href: url, target: '_blank', rel: 'noopener noreferrer', text: label || url.replace(/^https?:\/\//, '') });
+  }
+
+  function fileLink(path) {
+    if (!path) return null;
+    // Screenshots live next to this file, so a relative path works when opened from disk.
+    return el('a', { href: path, target: '_blank', rel: 'noopener', text: path.replace(/^.*\//, '') });
+  }
+
+  function shortDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toISOString().slice(0, 10);
+  }
+
+  function normalise(site) {
+    var status = STATUSES.indexOf(site.status) === -1 ? 'unmarked' : site.status;
+    return {
+      name: text(site.name) || text(site.domain),
+      domain: text(site.domain),
+      status: status,
+      check: text(site.check),
+      evidence: text(site.evidence),
+      followup: text(site.followup),
+      screenshot: text(site.screenshot),
+      updatedAt: text(site.updatedAt),
+      note: text(site.note)
+    };
+  }
+
+  var data = readData();
+  var sites = data.sites.map(normalise);
+
+  function renderHeader() {
+    var name = text(data.project.name) || 'Where To Submit report';
+    document.getElementById('title').textContent = name;
+    document.title = name + ' - Where To Submit report';
+    var sub = document.getElementById('sub');
+    var url = text(data.project.productUrl);
+    if (url) sub.appendChild(link(url));
+    if (data.generatedAt) {
+      sub.appendChild(document.createTextNode((url ? ' · ' : '') + 'updated ' + data.generatedAt));
+    }
+  }
+
+  function renderCounts() {
+    var box = document.getElementById('counts');
+    box.appendChild(el('div', {}, [el('b', { text: String(sites.length) }), el('span', { text: 'sites' })]));
+    STATUSES.forEach(function (status) {
+      var n = sites.filter(function (s) { return s.status === status; }).length;
+      if (n === 0) return;
+      box.appendChild(el('div', {}, [el('b', { class: 'status ' + status, text: String(n) }), el('span', { text: status })]));
+    });
+  }
+
+  function rowFor(site) {
+    var statusCell = el('td', {}, [el('span', { class: 'status ' + site.status, text: site.status })]);
+    if (site.followup) statusCell.appendChild(el('span', { class: 'followup', text: site.followup }));
+    if (site.status === 'unmarked' && site.note) statusCell.appendChild(el('span', { class: 'followup', text: site.note }));
+    return el('tr', {}, [
+      el('td', { class: 'site' }, [el('b', { text: site.name }), el('span', { text: site.domain })]),
+      statusCell,
+      el('td', {}, [link(site.check, site.check ? 'open' : '')]),
+      el('td', { class: 'evidence', text: site.evidence }),
+      el('td', {}, [fileLink(site.screenshot)]),
+      el('td', { class: 'when', text: shortDate(site.updatedAt) })
+    ]);
+  }
+
+  function renderRows() {
+    var status = document.getElementById('status').value;
+    var followup = document.getElementById('followup').value;
+    var q = document.getElementById('q').value.trim().toLowerCase();
+    var body = document.getElementById('rows');
+    body.textContent = '';
+    var shown = 0;
+    sites.forEach(function (site) {
+      if (status && site.status !== status) return;
+      if (followup && site.followup !== followup) return;
+      if (q && (site.name + ' ' + site.domain + ' ' + site.evidence + ' ' + site.note).toLowerCase().indexOf(q) === -1) return;
+      body.appendChild(rowFor(site));
+      shown += 1;
+    });
+    document.getElementById('empty').hidden = shown > 0;
+  }
+
+  function renderTodo() {
+    var items = [];
+    sites.forEach(function (site) {
+      if (site.followup === 'badge') items.push(site.name + ': add the badge or backlink, then re-run. ' + site.evidence);
+      else if (site.followup === 'verify_email') items.push(site.name + ': an email verification is still pending.');
+      else if (site.status === 'unmarked') items.push(site.name + ': ' + (site.note || 'not finished') + (site.check ? ' (' + site.check + ')' : ''));
+    });
+    if (items.length === 0) return;
+    var list = document.getElementById('todo-list');
+    items.forEach(function (item) { list.appendChild(el('li', { text: item })); });
+    document.getElementById('todo').hidden = false;
+  }
+
+  renderHeader();
+  renderCounts();
+  renderRows();
+  renderTodo();
+  document.getElementById('footer').textContent =
+    'Generated by the wheretosubmit-submit skill from project_status. Marks live on wheretosubmit.org; this file is a local copy.';
+  ['status', 'followup'].forEach(function (id) { document.getElementById(id).addEventListener('change', renderRows); });
+  document.getElementById('q').addEventListener('input', renderRows);
+})();
+</script>
+</body>
+</html>

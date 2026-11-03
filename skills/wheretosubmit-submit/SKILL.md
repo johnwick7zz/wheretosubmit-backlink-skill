@@ -97,16 +97,16 @@ names another folder.
   profile.json      product facts, copy, permissions, saved answers
   assets/           logo-512.png, wide logo, og image, screenshots
   evidence/         confirmation screenshots: <site-domain>-<yyyymmdd>.png
-  reports/          one markdown table per run: <yyyymmdd-hhmm>.md
+  report.html       one page with every site's status, rebuilt after each run
 ```
 
-There is no local ledger. Progress lives only in the MCP. The run report is
-a copy for the user, written row by row during the run (see "Run report"
-under step 8); it can always be rebuilt from `project_status`.
+There is no local ledger. Progress lives only in the MCP. `report.html` is a
+read-only copy for the user, generated from `project_status` at the end of
+each run (step 9).
 
 If `profile.json` is missing:
 
-1. Create the folder with `assets/`, `evidence/` and `reports/`, and copy
+1. Create the folder with `assets/` and `evidence/`, and copy
    `templates/profile.json` into it.
 2. Draft it from the product itself: homepage, pricing page, about page,
    meta and Open Graph tags, JSON-LD (`SoftwareApplication`, `Organization`,
@@ -148,8 +148,7 @@ Call `project_status` with `followup: "badge"`, then `"verify_email"`, then
 to do them before new submissions.
 
 Each mark's `evidence` starts with `Check: <url>`. Open that URL first; only
-search the site when it is missing or dead. Every follow-up you touch gets a
-row in the run report too, with the new status.
+search the site when it is missing or dead.
 
 - `badge`: open the page where the badge must be (usually the product
   homepage) and look for the site's badge or link. Then check the listing on
@@ -205,36 +204,11 @@ For each site:
    with `Check: <url>`, as described in
    [references/evidence.md](references/evidence.md).
 8. **No clear result:** follow "Outcome unknown" below.
-9. **Write the report row** for this site (see "Run report"), whatever the
-   outcome, including skipped and unknown.
+9. **Keep a note** of the site, outcome, check URL and screenshot path; the
+   unmarked ones (captcha, account, unknown) only exist in your notes and
+   are needed for the report.
 10. **Learned something?** Save new length variants to `copy` and new answers
     to `extra` in the profile.
-
-#### Run report
-
-At the start of the batch create `<workspace>/reports/<yyyymmdd-hhmm>.md`
-(local time) with this header, then append one row per site right after its
-mark, not at the end, so an interrupted run still leaves a usable table:
-
-```
-# Where To Submit run <yyyy-mm-dd hh:mm>
-
-Project: <name> (<productUrl>)
-
-| Site | Status | Check | Evidence | Followup | Screenshot |
-| --- | --- | --- | --- | --- | --- |
-| example.com | submitted | https://example.com/submissions/18342 | "in the review queue (2-3 days)" | awaiting_review | evidence/example.com-20261103.png |
-| other.io | unmarked (captcha) | https://other.io/submit | form filled, captcha handed to user | | |
-```
-
-- `Status` is the mark you wrote, or `unmarked (<reason>)` when you wrote
-  none: captcha, account, no mailbox, outcome unknown, skipped.
-- `Check` is the same URL as the `Check:` prefix in the evidence. For an
-  unmarked site put the submit page so the user can finish it.
-- `Evidence` is a few words of the quote, no secrets, same rules as the
-  MCP evidence. `Screenshot` is the relative path or empty.
-- If your tools cannot write files, keep the table in your working notes and
-  say so in the final report.
 
 #### Which mark to write
 
@@ -289,13 +263,52 @@ Stop the run and ask when:
 
 ### 9. Report
 
-Before writing it, call `project_status` for the project and take every mark
-whose `updatedAt` is at or after the time this run started. That list is the
-truth for the table; your own notes only add the unmarked rows. If a row in
-the report file disagrees with the MCP, fix the file. Note the time you
-started the run when you begin step 7 so this comparison is possible.
+Two outputs: the summary in chat, and `<workspace>/report.html`.
 
-End every run with this, in the user's language, then give the path of the
+#### Report file
+
+1. Call `project_status` for the project and page through all of it
+   (`nextCursor`). Every mark becomes one row. The MCP is the truth; do not
+   add marks from memory.
+2. Add one row per site you touched this run but left unmarked (captcha,
+   account, no mailbox, outcome unknown), with `status: "unmarked"` and the
+   reason in `note`.
+3. Copy `templates/report.html` from this skill to `<workspace>/report.html`
+   (overwrite the old one) and replace the JSON inside
+   `<script id="data" type="application/json">` with:
+
+```json
+{
+  "project": { "name": "<project name>", "productUrl": "<url>" },
+  "generatedAt": "<yyyy-mm-dd hh:mm local>",
+  "sites": [
+    {
+      "name": "Example", "domain": "example.com",
+      "status": "submitted",
+      "check": "https://example.com/submissions/18342",
+      "evidence": "\"Thanks! Your tool is in the review queue\"",
+      "followup": "awaiting_review",
+      "screenshot": "evidence/example.com-20261103.png",
+      "updatedAt": "2026-11-03T07:30:00Z",
+      "note": ""
+    }
+  ]
+}
+```
+
+- `status` is `approved`, `submitted`, `rejected`, `unusable` or `unmarked`.
+- `check` is the URL from the `Check:` prefix of the evidence; for an
+  unmarked site, the submit page so the user can finish it. `evidence` is the
+  rest of the evidence text, no secrets. `followup`, `screenshot`, `note` may
+  be empty strings. `screenshot` is relative to the workspace.
+- Valid JSON only: escape quotes, no trailing commas. The page renders an
+  empty table if the JSON is broken, so open it once and check.
+- Change nothing else in the file. If your tools cannot write files, say so
+  and give the table in chat only.
+
+#### Chat summary
+
+End every run with this, in the user's language, then the path of the
 report file:
 
 ```
@@ -305,7 +318,7 @@ Run summary: <n> sites tried, <a> approved, <s> submitted, <u> unusable, <r> rej
 | --- | --- | --- | --- | --- |
 | example.com | submitted | https://example.com/submissions/18342 | "Thanks, your tool is in review" | awaiting_review |
 
-Report file: .wheretosubmit/reports/20261103-1530.md
+Report: .wheretosubmit/report.html
 
 Needs you:
 - [ ] Captcha tabs to finish: <site, tab>
@@ -329,4 +342,5 @@ Leave out empty checklist lines.
 - [references/evidence.md](references/evidence.md): what counts as confirmation, wording, screenshots
 - [references/complex-sites.md](references/complex-sites.md): Product Hunt, G2, Capterra-type outlines
 - `templates/profile.json`: profile template
+- `templates/report.html`: report page, fill the JSON block
 - `scripts/preflight.mjs`: profile check (`--dir`, `--json`)

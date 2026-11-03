@@ -88,15 +88,16 @@ node ~/.claude/skills/wheretosubmit-submit/scripts/preflight.mjs --dir ./.wheret
 Your product data stays in that folder on your machine. Only the status of
 each site (submitted, approved, rejected, unusable, plus a short evidence
 note that starts with the URL where the result can be checked) is sent to
-wheretosubmit.org. Each run also leaves a markdown table in
-`.wheretosubmit/reports/` with every site touched, its status, the check URL
-and the screenshot path.
+wheretosubmit.org. After each run the agent rebuilds
+`.wheretosubmit/report.html`, one page with every site, its status, the check
+URL and the screenshot, so you can see where things stand without the MCP.
 
 ## Files
 
 ```
 SKILL.md                         workflow the agent follows
 templates/profile.json           product profile template
+templates/report.html            report page the agent fills after each run
 scripts/preflight.mjs            profile check, no dependencies
 scripts/lib/                     helpers for the check
 references/profile-schema.md     profile fields and limits

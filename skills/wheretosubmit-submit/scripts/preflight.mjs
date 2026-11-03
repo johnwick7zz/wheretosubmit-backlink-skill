@@ -54,7 +54,7 @@ function loadProfile(dir) {
 
 /** @param {string} dir @returns {string[]} workspace layout notes */
 function layoutNotes(dir) {
-  return ['assets', 'evidence', 'reports']
+  return ['assets', 'evidence']
     .filter((sub) => !existsSync(path.join(dir, sub)))
     .map((sub) => `${sub}/ folder is missing; create it before the run`);
 }
