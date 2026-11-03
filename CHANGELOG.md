@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 (2026-11-03)
+
+- The per-run markdown files under `reports/` are gone. Instead the agent
+  rebuilds a single `.wheretosubmit/report.html` at the end of each run from
+  `project_status`: every site, status, follow-up, check URL, evidence and
+  screenshot, with status and follow-up filters and a "Needs you" list.
+  Template: `templates/report.html`, the agent only fills the JSON block.
+- `scripts/preflight.mjs` no longer expects a `reports/` folder.
+
 ## 0.2.0 (2026-11-03)
 
 Verification and reporting.
