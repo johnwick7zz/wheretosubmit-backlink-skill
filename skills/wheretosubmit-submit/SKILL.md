@@ -37,9 +37,11 @@ Paths in this file are relative to this SKILL.md.
    gave. You may shorten or rephrase profile text, nothing more.
 5. One listing per site. Check for an existing listing before submitting.
    Never submit twice, even when the first result was unclear.
-6. Mark `submitted` only after you saw a confirmation page or email.
-   Mark `rejected` only when the site said no. Use `unusable` with a reason
-   for dead, paid-only (when paying is not allowed), off-topic or blocked sites.
+6. Mark `submitted` only after you saw a confirmation page or email, and
+   start its evidence with `Check: <url>`, the page where the result can be
+   checked later (see evidence.md). Mark `rejected` only when the site said
+   no. Use `unusable` with a reason for dead, paid-only (when paying is not
+   allowed), off-topic or blocked sites.
 7. If you cannot read the mailbox, do not start email-verify or account sites.
 8. Never edit the user's website (badges, backlinks). List what is needed.
 9. When something unexpected happens, stop and tell the user instead of guessing.
@@ -95,13 +97,16 @@ names another folder.
   profile.json      product facts, copy, permissions, saved answers
   assets/           logo-512.png, wide logo, og image, screenshots
   evidence/         confirmation screenshots: <site-domain>-<yyyymmdd>.png
+  reports/          one markdown table per run: <yyyymmdd-hhmm>.md
 ```
 
-There is no local ledger. Progress lives only in the MCP.
+There is no local ledger. Progress lives only in the MCP. The run report is
+a copy for the user, written row by row during the run (see "Run report"
+under step 8); it can always be rebuilt from `project_status`.
 
 If `profile.json` is missing:
 
-1. Create the folder with `assets/` and `evidence/`, and copy
+1. Create the folder with `assets/`, `evidence/` and `reports/`, and copy
    `templates/profile.json` into it.
 2. Draft it from the product itself: homepage, pricing page, about page,
    meta and Open Graph tags, JSON-LD (`SoftwareApplication`, `Organization`,
@@ -142,6 +147,10 @@ Call `project_status` with `followup: "badge"`, then `"verify_email"`, then
 `"awaiting_review"` (page with `nextCursor`). If there are many, ask whether
 to do them before new submissions.
 
+Each mark's `evidence` starts with `Check: <url>`. Open that URL first; only
+search the site when it is missing or dead. Every follow-up you touch gets a
+row in the run report too, with the new status.
+
 - `badge`: open the page where the badge must be (usually the product
   homepage) and look for the site's badge or link. Then check the listing on
   the site. Listed: mark `approved` with the listing URL. Badge live but not
@@ -149,8 +158,8 @@ to do them before new submissions.
   `followup: "awaiting_review"`, evidence "badge live since <date>". Badge not
   live: leave the mark, list it again in the report.
 - `verify_email`: see "On a later run" in email-verification.md.
-- `awaiting_review` older than 7 days: check for the listing. Listed: mark
-  `approved` with the URL. Not listed: leave it. Never resubmit.
+- `awaiting_review` older than 7 days: open the check URL. Listed: mark
+  `approved` with `Check: <listing url>`. Not listed: leave it. Never resubmit.
 
 ### 7. Choose targets
 
@@ -190,12 +199,42 @@ For each site:
    [references/field-mapping.md](references/field-mapping.md). Read the whole
    form, including its last step, before typing.
 6. **Submit** with the real submit control, then wait and read the result.
-7. **Confirmation seen:** save a screenshot to `evidence/` and call
-   `mark_status` right away, as described in
+7. **Confirmation seen:** note the check URL (the listing, a status page, or
+   the page you are on; evidence.md says how to pick), save a screenshot to
+   `evidence/` and call `mark_status` right away with evidence that starts
+   with `Check: <url>`, as described in
    [references/evidence.md](references/evidence.md).
 8. **No clear result:** follow "Outcome unknown" below.
-9. **Learned something?** Save new length variants to `copy` and new answers
-   to `extra` in the profile.
+9. **Write the report row** for this site (see "Run report"), whatever the
+   outcome, including skipped and unknown.
+10. **Learned something?** Save new length variants to `copy` and new answers
+    to `extra` in the profile.
+
+#### Run report
+
+At the start of the batch create `<workspace>/reports/<yyyymmdd-hhmm>.md`
+(local time) with this header, then append one row per site right after its
+mark, not at the end, so an interrupted run still leaves a usable table:
+
+```
+# Where To Submit run <yyyy-mm-dd hh:mm>
+
+Project: <name> (<productUrl>)
+
+| Site | Status | Check | Evidence | Followup | Screenshot |
+| --- | --- | --- | --- | --- | --- |
+| example.com | submitted | https://example.com/submissions/18342 | "in the review queue (2-3 days)" | awaiting_review | evidence/example.com-20261103.png |
+| other.io | unmarked (captcha) | https://other.io/submit | form filled, captcha handed to user | | |
+```
+
+- `Status` is the mark you wrote, or `unmarked (<reason>)` when you wrote
+  none: captcha, account, no mailbox, outcome unknown, skipped.
+- `Check` is the same URL as the `Check:` prefix in the evidence. For an
+  unmarked site put the submit page so the user can finish it.
+- `Evidence` is a few words of the quote, no secrets, same rules as the
+  MCP evidence. `Screenshot` is the relative path or empty.
+- If your tools cannot write files, keep the table in your working notes and
+  say so in the final report.
 
 #### Which mark to write
 
@@ -250,14 +289,23 @@ Stop the run and ask when:
 
 ### 9. Report
 
-End every run with this, in the user's language:
+Before writing it, call `project_status` for the project and take every mark
+whose `updatedAt` is at or after the time this run started. That list is the
+truth for the table; your own notes only add the unmarked rows. If a row in
+the report file disagrees with the MCP, fix the file. Note the time you
+started the run when you begin step 7 so this comparison is possible.
+
+End every run with this, in the user's language, then give the path of the
+report file:
 
 ```
 Run summary: <n> sites tried, <a> approved, <s> submitted, <u> unusable, <r> rejected, <k> left unmarked.
 
-| Site | Status | Evidence | Followup |
-| --- | --- | --- | --- |
-| example.com | submitted | "Thanks, your tool is in review" | awaiting_review |
+| Site | Status | Check | Evidence | Followup |
+| --- | --- | --- | --- | --- |
+| example.com | submitted | https://example.com/submissions/18342 | "Thanks, your tool is in review" | awaiting_review |
+
+Report file: .wheretosubmit/reports/20261103-1530.md
 
 Needs you:
 - [ ] Captcha tabs to finish: <site, tab>
@@ -268,8 +316,9 @@ Needs you:
 - [ ] Questions: <what you need answered>
 ```
 
-Keep evidence in the table short (a few words of the quote). Leave out
-empty checklist lines.
+Keep evidence in the table short (a few words of the quote). The `Check`
+column is a plain URL the user can click to see the listing or its status.
+Leave out empty checklist lines.
 
 ## References
 

@@ -40,10 +40,11 @@ Only if the mailbox check passed at the start of the run.
 
 1. Note the time, then submit.
 2. Follow email-verification.md to find the code or link and complete it.
-3. Confirmed: mark `submitted` with what the page and email said.
+3. Confirmed: mark `submitted` with `Check: <url>` and what the page and
+   email said.
 4. Page confirmed the form but no email came: mark `submitted` with
-   `followup: "verify_email"` and the evidence "page said check email, no
-   email within N minutes".
+   `followup: "verify_email"` and the evidence "Check: <submit or status
+   url>. page said check email, no email within N minutes".
 5. Mailbox not readable: skip the site, leave it unmarked, list it in the report.
 
 ## account
@@ -95,8 +96,9 @@ The site wants a badge or link on the product site before it lists you.
 
 1. Do not edit the user's website. That is their decision.
 2. If the site lets you submit first: submit, then mark `submitted` with
-   `followup: "badge"`. Evidence: the exact snippet (or a pointer to
-   `evidence/<domain>-badge.html`) and where it must go ("homepage footer").
+   `followup: "badge"`. Evidence: `Check: <url>`, then the exact snippet (or
+   a pointer to `evidence/<domain>-badge.html`) and where it must go
+   ("homepage footer").
 3. If the site checks for the badge before accepting the form: copy the
    snippet and placement, leave the site unmarked, and list it in the report
    under "badges to add". On the next run, once the badge is live, submit.

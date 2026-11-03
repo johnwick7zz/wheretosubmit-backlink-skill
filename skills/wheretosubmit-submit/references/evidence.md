@@ -3,6 +3,28 @@
 `mark_status` keeps what you write in `evidence` (500 characters max). The
 next run, and the user, rely on it. Write what you saw, not what you expect.
 
+## Where to check it
+
+Every `submitted` or `approved` evidence starts with `Check: <url>`, the one
+page where the result can be checked later. The next run opens it before
+doing anything else, so pick the most direct one you have:
+
+1. the listing itself, when it is live or has a pending URL already;
+2. a "my submissions", "dashboard" or "status" page on the site that shows
+   this entry;
+3. the page you landed on after submit, if it is a stable URL (not a
+   one-time `?token=` page);
+4. otherwise the site's search page for the product name, or the newest
+   listings page, so the checker knows where to look.
+
+The URL lives only as long as the mark does: when a follow-up run marks the
+site `approved`, `rejected` or `unusable`, the new evidence replaces it. There
+is nothing to clean up.
+
+Never use a verification link, magic link, session URL or anything with a
+code in it as the check URL. If the only URL you have is one of those, use
+option 4 and say so.
+
 ## What counts as a confirmation
 
 Counts:
@@ -34,15 +56,15 @@ SKILL.md.
 One or two plain sentences, quoting the site where you can:
 
 ```
-Page after submit: "Thanks! Your tool is in the review queue (2-3 days)". Screenshot evidence/example.com-20261102.png
+Check: https://example.com/submissions/18342. Page after submit: "Thanks! Your tool is in the review queue (2-3 days)". Screenshot evidence/example.com-20261102.png
 ```
 
 ```
-Email "Confirm your submission" from noreply@example.com, clicked the link, page said "Submission confirmed".
+Check: https://example.com/search?q=sample+app. Email "Confirm your submission" from noreply@example.com, clicked the link, page said "Submission confirmed".
 ```
 
 ```
-Already listed: https://example.com/tools/sample-app (found via site search).
+Check: https://example.com/tools/sample-app. Already listed (found via site search).
 ```
 
 ```
@@ -50,11 +72,13 @@ Unusable: free plan removed, submit page now only offers a $49 listing.
 ```
 
 ```
-Badge required before review. Snippet: <a href="https://example.com"><img src="https://example.com/badge.svg" alt="Featured on Example"></a>. Must be on the homepage footer.
+Check: https://example.com/pending/sample-app. Badge required before review. Snippet: <a href="https://example.com"><img src="https://example.com/badge.svg" alt="Featured on Example"></a>. Must be on the homepage footer.
 ```
 
 Rules:
 
+- `submitted` and `approved` start with `Check: <url>` followed by a period.
+  `rejected` and `unusable` do not need one.
 - Quote the site's own words in double quotes.
 - Never include passwords, verification codes, magic links, session URLs or
   other secrets. Write "clicked the verification link", not the link.

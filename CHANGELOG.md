@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.0 (2026-11-03)
+
+Verification and reporting.
+
+- Every `submitted` or `approved` mark now starts its evidence with
+  `Check: <url>`, the page where the result can be checked later (listing,
+  status page, post-submit page, or the site's search as a last resort).
+  Follow-up runs open that URL first instead of searching the site again.
+  The URL is replaced together with the mark, so nothing accumulates.
+- Each run writes `.wheretosubmit/reports/<yyyymmdd-hhmm>.md`, one row per
+  site appended right after its mark (site, status, check URL, evidence,
+  follow-up, screenshot). Unmarked sites get a row too, with the reason.
+- The final report is built from `project_status` (marks updated during the
+  run) rather than from the agent's memory, and gains a Check column plus
+  the report file path.
+- `scripts/preflight.mjs` also checks for the `reports/` folder.
+
 ## 0.1.0 (2026-11-02)
 
 First public release.

@@ -42,8 +42,9 @@ browser. The skill does not depend on any one of them.
 1. Do not submit again; a second submission often creates a duplicate or
    gets the product flagged.
 2. Mark `submitted` with `followup: "verify_email"` only if the page itself
-   confirmed the form ("we sent you an email"). Evidence: the page text and
-   "no email within 5 minutes".
+   confirmed the form ("we sent you an email"). Evidence: `Check: <submit or
+   status page url>`, the page text and "no email within 5 minutes". Never
+   the emailed link.
 3. Move on to the next site.
 
 ## On a later run

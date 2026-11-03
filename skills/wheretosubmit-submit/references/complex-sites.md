@@ -54,8 +54,8 @@ Submit:
 2. Choose "schedule" with the date the user gave. Launches go live at
    12:01 a.m. Pacific time. Do not press the final Schedule or Launch button
    until the user says so.
-3. Mark `submitted`, `followup: "awaiting_review"`, evidence "scheduled for
-   <date>, post <url>".
+3. Mark `submitted`, `followup: "awaiting_review"`, evidence "Check: <post
+   url>. scheduled for <date>".
 
 Rules on Product Hunt:
 
@@ -91,8 +91,8 @@ Claim or add:
 2. No profile: use G2's free "get listed" form for vendors. Fill product
    name, URL, the closest G2 category, company details and the business email.
 3. G2 reviews requests by hand; this can take days or weeks.
-4. Mark `submitted`, `followup: "awaiting_review"`, evidence with the
-   confirmation text.
+4. Mark `submitted`, `followup: "awaiting_review"`, evidence `Check: <the
+   vendor or claim page url>` plus the confirmation text.
 
 Profile (after G2 grants vendor access):
 

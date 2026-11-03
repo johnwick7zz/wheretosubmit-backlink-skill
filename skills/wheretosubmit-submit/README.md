@@ -87,7 +87,10 @@ node ~/.claude/skills/wheretosubmit-submit/scripts/preflight.mjs --dir ./.wheret
 
 Your product data stays in that folder on your machine. Only the status of
 each site (submitted, approved, rejected, unusable, plus a short evidence
-note) is sent to wheretosubmit.org.
+note that starts with the URL where the result can be checked) is sent to
+wheretosubmit.org. Each run also leaves a markdown table in
+`.wheretosubmit/reports/` with every site touched, its status, the check URL
+and the screenshot path.
 
 ## Files
 
