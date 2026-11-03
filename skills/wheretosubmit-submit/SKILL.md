@@ -275,7 +275,9 @@ Two outputs: the summary in chat, and `<workspace>/report.html`.
    reason in `note`.
 3. Copy `templates/report.html` from this skill to `<workspace>/report.html`
    (overwrite the old one) and replace the JSON inside
-   `<script id="data" type="application/json">` with:
+   `<script id="data" type="application/json">` with the block below. If the
+   old file had a `comments` array (written by the `wheretosubmit-comment`
+   skill), carry it over unchanged; this skill owns `sites` only.
 
 ```json
 {
@@ -292,7 +294,8 @@ Two outputs: the summary in chat, and `<workspace>/report.html`.
       "updatedAt": "2026-11-03T07:30:00Z",
       "note": ""
     }
-  ]
+  ],
+  "comments": []
 }
 ```
 

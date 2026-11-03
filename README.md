@@ -7,9 +7,11 @@
 # Where To Submit agent skill
 
 This repository lets your AI agent submit your product to the directories and
-launch sites listed on [wheretosubmit.org](https://wheretosubmit.org). It holds
-one skill, `wheretosubmit-submit`, and the setup for the Where To Submit MCP
-server. The MCP server tells the agent which sites to try next and stores your
+launch sites listed on [wheretosubmit.org](https://wheretosubmit.org), and
+leave blog comments with a backlink on the pages listed there. It holds two
+skills, `wheretosubmit-submit` (directories and launch sites) and
+`wheretosubmit-comment` (blog comments), and the setup for the Where To
+Submit MCP server. The MCP server tells the agent which sites to try next and stores your
 progress in your Where To Submit account. The skill tells the agent how to do
 the work: fill each site's form in a real browser from a local product
 profile, one site at a time, and record what happened.
@@ -111,13 +113,13 @@ Download the repository archive from
 For Claude Code, for all projects:
 
 ```sh
-cp -R skills/wheretosubmit-submit ~/.claude/skills/
+cp -R skills/wheretosubmit-submit skills/wheretosubmit-comment ~/.claude/skills/
 ```
 
 Or for one project only, from that project's root:
 
 ```sh
-mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-submit .claude/skills/
+mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-submit /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-comment .claude/skills/
 ```
 
 Then connect the MCP server with the `claude mcp add` command above (or your
@@ -164,7 +166,9 @@ status and a short evidence note go to wheretosubmit.org. Add
 - [docs/mcp.md](docs/mcp.md): MCP setup, tools, statuses, follow-ups and error
   codes.
 - [skills/wheretosubmit-submit/SKILL.md](skills/wheretosubmit-submit/SKILL.md):
-  the full workflow the agent follows.
+  the full directory-submission workflow the agent follows.
+- [skills/wheretosubmit-comment/SKILL.md](skills/wheretosubmit-comment/SKILL.md):
+  the blog-comment workflow: identity file, comment rules, dofollow mode.
 - [CHANGELOG.md](CHANGELOG.md)
 
 ## License

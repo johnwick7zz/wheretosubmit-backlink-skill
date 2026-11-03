@@ -1,0 +1,47 @@
+{
+  "_help": "Where To Submit blog-comment settings. Lives next to profile.json in the workspace. Everything here stays on your machine; only the per-page status goes to wheretosubmit.org. Keys that start with _ are notes. Replace every TODO. Run scripts/preflight.mjs after editing.",
+  "schema": "wheretosubmit-comment/v1",
+  "updatedAt": "TODO: YYYY-MM-DD",
+
+  "identity": {
+    "_help": "Typed into every comment form: name, email, website. Use one real, fixed identity per project. name is a person's name, not the product's. email is a mailbox you own on a normal provider (Gmail, Outlook, your own domain); disposable addresses get comments flagged. website is the product URL and becomes the link on your name.",
+    "name": "TODO: Jane Doe",
+    "email": "TODO: jane@example.com",
+    "website": "TODO: https://example.com"
+  },
+
+  "pages": {
+    "_help": "Pages of the product that a comment may link to. Deep pages (guides, blog posts, docs) work far better than the homepage. about is one honest line of what the page covers; the agent may not claim anything beyond it. topics is what kinds of posts the page fits.",
+    "items": [
+      {
+        "url": "TODO: https://example.com/blog/some-guide",
+        "about": "TODO: one line, what the page covers",
+        "topics": ["TODO: topic one", "TODO: topic two"]
+      }
+    ]
+  },
+
+  "styleExamples": {
+    "_help": "Three to five finished comments in the voice to match: one concrete fact per sentence, 250 to 400 characters, a specific observation first, the link as an aside at the end. Examples of tone and shape only; the agent never reuses them.",
+    "items": [
+      "TODO: example comment one",
+      "TODO: example comment two",
+      "TODO: example comment three"
+    ]
+  },
+
+  "linkInBody": "always",
+  "_linkInBody": "always (default): one <a href> with descriptive anchor text in the body of every comment; the Website field is filled too when the form has one. when-no-website-field: link on the name only where a Website field exists, body link elsewhere. never: no body link at all.",
+
+  "hrefBreak": false,
+  "_hrefBreak": "true writes a body link with a line break before the closing quote of the href, which keeps some WordPress installs from adding rel=nofollow. Body links only. See references/comment-writing.md.",
+
+  "usedAnchors": [],
+  "_usedAnchors": "Anchor texts already used in body links, kept by the agent so no two comments share one.",
+
+  "run": {
+    "count": 10,
+    "pace": "normal",
+    "_help": "count: pages per run, 1 to 25. pace: normal or careful; careful doubles the delays."
+  }
+}

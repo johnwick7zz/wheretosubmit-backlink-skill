@@ -9,7 +9,7 @@
     {
       "name": "wheretosubmit",
       "source": "./",
-      "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org, one site at a time in a real browser, and record progress through the Where To Submit MCP.",
+      "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org and leave blog comments with a backlink, one site at a time in a real browser, recording progress through the Where To Submit MCP.",
       "category": "marketing",
       "tags": ["directories", "backlinks", "launch", "mcp"]
     }

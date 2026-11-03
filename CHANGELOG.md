@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 (2026-11-03)
+
+Blog comments.
+
+- New skill `wheretosubmit-comment`: picks blog pages through the new MCP
+  tools `next_comment_targets` and `mark_comment` (one page per domain),
+  reads each post, writes a 250 to 400 character comment that responds to
+  it with exactly one body link under descriptive anchor text, fills name,
+  email and website from a local `comment.json`, hands CAPTCHAs to the user,
+  and records one status per page. Comment URLs, anchor text and the rendered
+  `rel` go into the shared `report.html`, never to the server.
+- Dofollow mode: asking for dofollow comments (or `hrefBreak: true`) writes
+  the body link with a line break before the closing quote of the href, the
+  same trick as the browser extension, and records whether the site kept the
+  link dofollow.
+- `wheretosubmit-submit`: `report.html` gains a Blog comments section and
+  keeps the `comments` key written by the new skill.
+- `docs/mcp.md`: the two comment tools, their statuses and error codes.
+
 ## 0.2.1 (2026-11-03)
 
 - The per-run markdown files under `reports/` are gone. Instead the agent

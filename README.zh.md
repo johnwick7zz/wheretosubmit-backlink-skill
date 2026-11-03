@@ -6,7 +6,7 @@
 
 # Where To Submit 提交 Skill
 
-这个仓库让你的 AI agent 替你把产品提交到 [wheretosubmit.org](https://wheretosubmit.org) 收录的那些目录站和发布平台。里面有一个 skill，`wheretosubmit-submit`，加上接 Where To Submit MCP 服务的配置。MCP 负责告诉 agent 下一个该投哪个站，并把进度记到你的 Where To Submit 账户里；skill 负责教 agent 怎么干活：在真实浏览器里，拿你电脑上的产品资料，一个站一个站地填表，填完把结果记回来。
+这个仓库让你的 AI agent 替你把产品提交到 [wheretosubmit.org](https://wheretosubmit.org) 收录的那些目录站和发布平台。里面有两个 skill：`wheretosubmit-submit` 负责目录站和发布平台的提交，`wheretosubmit-comment` 负责去博客评论区留带链接的评论；另外还有接 Where To Submit MCP 服务的配置。MCP 负责告诉 agent 下一个该投哪个站，并把进度记到你的 Where To Submit 账户里；skill 负责教 agent 怎么干活：在真实浏览器里，拿你电脑上的产品资料，一个站一个站地填表，填完把结果记回来。
 
 ## 需要准备什么
 
@@ -81,13 +81,13 @@ npx skills add johnwick7zz/wheretosubmit-backlink-skill
 从 <https://github.com/johnwick7zz/wheretosubmit-backlink-skill> 下载压缩包（Code，Download ZIP）解开，把 skill 文件夹拷到你的 agent 读 skill 的地方。Claude Code 全局装：
 
 ```sh
-cp -R skills/wheretosubmit-submit ~/.claude/skills/
+cp -R skills/wheretosubmit-submit skills/wheretosubmit-comment ~/.claude/skills/
 ```
 
 只给某一个项目用的话，在那个项目根目录跑：
 
 ```sh
-mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-submit .claude/skills/
+mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-submit /path/to/wheretosubmit-backlink-skill/skills/wheretosubmit-comment .claude/skills/
 ```
 
 然后用上面那条 `claude mcp add`（或者你 agent 自己的 MCP 配置）接上服务，重开会话。
@@ -117,7 +117,8 @@ mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wh
 ## 更多
 
 - [docs/mcp.md](docs/mcp.md)：MCP 的接入、工具、状态、待办和错误码。
-- [skills/wheretosubmit-submit/SKILL.md](skills/wheretosubmit-submit/SKILL.md)：agent 遵循的完整流程。
+- [skills/wheretosubmit-submit/SKILL.md](skills/wheretosubmit-submit/SKILL.md)：目录站提交的完整流程。
+- [skills/wheretosubmit-comment/SKILL.md](skills/wheretosubmit-comment/SKILL.md)：博客评论流程：身份文件、评论规则、dofollow 模式。
 - [CHANGELOG.md](CHANGELOG.md)
 
 ## 许可

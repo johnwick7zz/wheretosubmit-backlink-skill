@@ -1,8 +1,8 @@
 {
   "name": "wheretosubmit",
   "displayName": "Where To Submit",
-  "version": "0.2.1",
-  "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org, one site at a time in a real browser, and record progress through the Where To Submit MCP.",
+  "version": "0.3.0",
+  "description": "Submit your product to the directories and launch sites tracked on wheretosubmit.org and leave blog comments with a backlink, one site at a time in a real browser, recording progress through the Where To Submit MCP.",
   "author": {
     "name": "Where To Submit",
     "url": "https://wheretosubmit.org"

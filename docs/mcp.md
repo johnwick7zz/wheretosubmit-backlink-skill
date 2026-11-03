@@ -19,8 +19,9 @@ there to revoke it. You can have 5 active tokens in total (extension devices
 and MCP tokens together).
 
 MCP tokens only work on `/api/mcp`, and extension tokens only work for the
-browser extension. Any plan can create a token. Reading works on every plan;
-`mark_status`, `create_project` and `update_project` need Pro.
+browser extension. Any plan can create a token. Reading directory sites works
+on every plan; `mark_status`, `create_project`, `update_project` and both
+blog-comment tools (`next_comment_targets`, `mark_comment`) need Pro.
 
 ## 2. Add it to your client
 
@@ -55,8 +56,17 @@ Keep the token out of git. Treat it like a password.
 | `mark_status` | Pro only. Record up to 25 marks at once: `{ siteId, status, evidence?, followup? }`. Each mark replaces the old one, so leaving out `evidence` or `followup` clears it. |
 | `create_project` | Pro only. `{ name, productUrl?, confirm? }`. Creates a project and returns `{ project, created: true }`. Checks for duplicates first, see below. |
 | `update_project` | Pro only. `{ projectId, name?, productUrl? }`. Renames a project or sets/replaces its `productUrl` (it can't be cleared). Returns `{ project }`. |
+| `next_comment_targets` | Pro only. Blog pages with an open comment box that this project has not commented on, in a fixed order (`commentLinkId` ascending). `limit` (default 10, max 25), filters: `category`, `minAs`, `search` (domain). `onePerDomain` (default `true`) returns one page per domain, the highest-scoring one, and skips domains that already have any mark for this project. Each item: `commentLinkId`, `domain`, `url`, `authorityScore`, `category`. |
+| `mark_comment` | Pro only. Record up to 25 comment results: `{ commentLinkId, status }`. Status only; the comment's URL and text stay in the agent's local report. Upsert, so re-sending is safe. |
 
-Statuses: `submitted`, `approved`, `rejected`, `unusable`.
+Statuses: `submitted`, `approved`, `rejected`, `unusable`. For blog comments
+they mean: `approved` the comment is visible on the page right away,
+`submitted` the page says it awaits moderation, `unusable` no comment form,
+comments closed, email verification or CAPTCHA in the way, or a dead page,
+`rejected` the site refused it.
+
+Comment categories: `education`, `tech`, `business`, `media`, `government`,
+`nonprofit`, `health`, `lifestyle`, `other`.
 
 Follow-ups (what still has to happen after a mark):
 
@@ -99,7 +109,8 @@ back as `null` with `gated: true`, same as on the website.
 Errors come back as a tool error with a JSON body such as
 `{"error":"project_not_found"}`. Codes: `project_not_found`, `site_not_found`,
 `site_or_domain_required`, `invalid_cursor`, `pro_required`, `duplicate_site`,
-`invalid_name`, `invalid_url`, `project_quota_exceeded`, `possible_duplicate`,
+`comment_link_not_found`, `duplicate_comment_link`, `invalid_name`,
+`invalid_url`, `project_quota_exceeded`, `possible_duplicate`,
 `nothing_to_update`, `internal_error`. A projectId that isn't yours is always `project_not_found`.
 
 ## 4. Rules for the agent
@@ -121,7 +132,11 @@ These are in the tool descriptions too:
 - Each mark replaces the previous one. When you update a mark, send the
   `followup` again if it still applies, or leave it out once it's done.
 - `mark_status` rejects the whole batch if any `siteId` is unknown or repeated,
-  so nothing is half-written.
+  so nothing is half-written. `mark_comment` does the same for `commentLinkId`.
+- Blog comments: one comment per domain. Read the post first; the comment has
+  to respond to it, in the post's language, with at most one link. Mark
+  `approved` only when you can see the comment on the page, `submitted` when
+  the page says it is awaiting moderation.
 
 ## 5. Submission skill
 
