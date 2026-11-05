@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.0 (2026-11-05)
+
+Faster runs, and the agent handles accounts and mail itself.
+
+- `wheretosubmit-submit`: new `accounts` section in `profile.json`. With
+  `permissions.allowRegistration` on, the agent registers or signs in with
+  the user's own credentials, logs into the webmail (163, 126, QQ, Gmail,
+  Outlook) in a browser tab to read verification codes and links, and never
+  invents a password. Email-verify sites are submitted in a batch and the
+  mailbox is checked once for all of them. Duplicate check is one site
+  search instead of three lookups. Fewer stops: missing facts and odd terms
+  become end-of-run questions or `unusable` marks instead of halting the run.
+- `wheretosubmit-submit`: target selection uses the new `summaryEn` /
+  `verdictEn` from `next_targets` (drops "Skip" verdicts, dead and
+  non-directory sites) and the `linkType` filter; orders by `gate`.
+- `wheretosubmit-comment`: `next_comment_targets` now returns highest
+  authority score first. Off-topic pages are marked `unusable` instead of
+  coming back every run. Each run first revisits last run's `submitted`
+  comments to record whether they went live and their `rel`.
+- `wheretosubmit-submit`: a mandatory readiness checklist before any target
+  is chosen (step 7, `references/checklist.md`): connection, product
+  profile, accounts and mail, scope, follow-ups, one mark per row, then a
+  numbered "Needs you" list. `preflight.mjs --json` gains `facts` for it and
+  `report.html` shows the checklist the run started from.
+- Preflight checks the `accounts` section and warns when a password is
+  stored without `.wheretosubmit/` being git-ignored.
+
 ## 0.3.0 (2026-11-03)
 
 Blog comments.

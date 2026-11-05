@@ -14,7 +14,7 @@ Start from `templates/profile.json`. Check it with
 - A string that starts with `TODO` counts as missing.
 - `null` means "does not apply" or "unknown". Never guess a value to replace a null.
 - Paths in `assets` are relative to the workspace folder.
-- No secrets: no passwords, API keys, card numbers, or one-time codes.
+- No secrets outside `accounts`: no API keys, card numbers, or one-time codes anywhere; passwords only under `accounts`, and the whole `.wheretosubmit/` folder stays out of git.
 
 ## Tiers
 
@@ -117,11 +117,29 @@ check sizes.
 Full URLs or null: `twitter`, `linkedin`, `github`, `producthunt`,
 `youtube`, `discord`, `docs`, `changelog`. Other keys are allowed.
 
+### `accounts`
+
+Optional. Used only when `permissions.allowRegistration` is true. Everything
+here stays on the user's machine.
+
+| Key | Type | Notes |
+| --- | --- | --- |
+| `default.email` | email or null | the account the agent registers or signs in with on directories |
+| `default.password` | string or null | null = use the Google/GitHub session already open in the browser for that email, else ask once |
+| `default.username` | string or null | for sites that want a handle |
+| `mailbox.url` | URL or null | webmail to open for verification codes; null = pick from the email's domain (163, 126, QQ, Gmail, Outlook) |
+| `mailbox.email` / `mailbox.password` | string or null | null = reuse `default` |
+| `sites` | map | per-domain overrides `{ "<domain>": { email, password, username, note } }`, written by the agent when a site forced a different credential |
+
+The agent never invents a password and never writes credentials into
+`evidence`, chat or the report. See gates.md (account) and
+email-verification.md (webmail).
+
 ### `permissions`
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `allowRegistration` | `false` | may create accounts on directories |
+| `allowRegistration` | `false` | may register or sign in on directories with the credentials in `accounts`, and may log into the webmail to read codes |
 | `allowCaptchaHandoff` | `true` | may fill a form and hand the CAPTCHA to the user; the agent never solves it |
 | `allowPaid` | `false` | may take a paid listing to the checkout page and hand it to the user; the agent never enters payment details |
 | `neverShare` | `["phone", "streetAddress", "taxId", "companyRegistrationNumber"]` | fields never filled, even when required; such sites are skipped |

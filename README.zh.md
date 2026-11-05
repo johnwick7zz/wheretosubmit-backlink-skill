@@ -98,9 +98,9 @@ mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wh
 
 1. 调 `list_projects` 确认 MCP 连上了、你是什么套餐。工具不在或者令牌不对，它会停下来告诉你。
 2. 找到你的产品网址，和你 Where To Submit 里的项目对上。复用已有项目或者新建，都会先问你。
-3. 在你的项目里建一个 `./.wheretosubmit/` 工作区，放 `profile.json`、`assets/` 和 `evidence/`。资料它会照着你的网站先写一版，再让你确认事实。不知道的留空，不瞎编。
+3. 在你的项目里建一个 `./.wheretosubmit/` 工作区，放 `profile.json`、`assets/` 和 `evidence/`。资料它会照着你的网站先写一版，再让你确认事实。不知道的留空，不瞎编。想让它自己在站上注册、登录，就把你用来注册的邮箱、密码、用户名填进 `accounts`，再把 `permissions.allowRegistration` 打开。
 4. 跑一遍资料检查：`node <skill目录>/scripts/preflight.mjs --dir ./.wheretosubmit`，退出码 0 就是准备好了。
-5. 试一下能不能读你的邮箱。读不了就跳过那些要邮件验证或者要注册账号的站。
+5. 先给你看一张自检清单：MCP 连接、资料、账号和邮箱、提交范围、上次留下的待办，每行一个标记，最后列出还缺什么。缺的它才等你补。`accounts` 里填了 `mailbox`，它会在浏览器里登你的网页邮箱（163、126、QQ、Gmail、Outlook）自己读验证码；没填就跳过要邮件验证的站。
 6. 用 `next_targets` 挑站，一个站一个站提交，每个结果都用 `mark_status` 记回去。
 
 产品资料一直在你电脑上的 `.wheretosubmit/` 里，只有每个站的状态和一句简短的证据会传到 wheretosubmit.org。记得把 `.wheretosubmit/evidence/` 加进项目的 `.gitignore`。
@@ -108,7 +108,7 @@ mkdir -p .claude/skills && cp -R /path/to/wheretosubmit-backlink-skill/skills/wh
 ## agent 绝不做的事
 
 - 付钱。就算你允许提交付费站，它也只走到结算页，然后交给你。
-- 注册账号、建密码，除非你明确允许。
+- 用 `profile.json` 里 `accounts` 以外的任何账号去注册或登录；而且只在 `allowRegistration` 打开时才做。它从不自己编密码、存密码。
 - 解验证码或者绕过验证码。它把表填好，验证码留给你点。
 - 编造事实。只用你的资料和你给的答案。
 - 同一个站提交两次，或者没看到确认页就标成已提交。

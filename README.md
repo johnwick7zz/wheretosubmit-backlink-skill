@@ -136,12 +136,19 @@ Ask your agent something like "Submit my product to 10 free directories" or
    It asks before reusing one and before creating a new one.
 3. Create a workspace at `./.wheretosubmit/` in your project, with
    `profile.json`, `assets/` and `evidence/`. It drafts the profile from your
-   website and asks you to confirm the facts. Unknown facts stay empty.
+   website and asks you to confirm the facts. Unknown facts stay empty. If
+   you want it to register or sign in on sites, put the email, password and
+   username you use for that under `accounts` and turn on
+   `permissions.allowRegistration`.
 4. Run the preflight check on the profile:
    `node <skill-folder>/scripts/preflight.mjs --dir ./.wheretosubmit`.
    Exit 0 means ready.
-5. Check whether it can read your mailbox. If not, it skips sites that need
-   email verification or an account.
+5. Show a readiness checklist: MCP connection, profile, accounts and
+   mailbox, scope, pending follow-ups, one mark per row, then a short list of
+   what it still needs from you. It waits only for missing items. With a
+   `mailbox` under `accounts` it signs into your webmail (163, 126, QQ,
+   Gmail, Outlook) in a browser tab to read verification codes itself;
+   without one it skips sites that need email verification.
 6. Pick targets with `next_targets` and submit one site at a time, recording
    each result with `mark_status`.
 
@@ -153,7 +160,9 @@ status and a short evidence note go to wheretosubmit.org. Add
 
 - Pay for anything. With paid sites allowed, it stops at the checkout page and
   hands it to you.
-- Register accounts or create passwords, unless you allow it.
+- Register or sign in with anything other than the credentials you put under
+  `accounts` in `profile.json`, and only when `allowRegistration` is on. It
+  never invents or stores a password.
 - Solve or bypass CAPTCHAs. It fills the form and hands the CAPTCHA to you.
 - Invent facts. It only uses your profile and answers you gave.
 - Submit to the same site twice, or mark a site submitted without seeing a

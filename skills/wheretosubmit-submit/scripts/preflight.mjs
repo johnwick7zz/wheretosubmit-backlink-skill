@@ -4,12 +4,12 @@
 // Exit codes: 0 ready, 1 blocking problems, 2 bad arguments.
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { SCHEMA_ID, checkProfile } from './lib/checks.mjs';
+import { SCHEMA_ID, checkProfile, summarizeProfile } from './lib/checks.mjs';
 
 const USAGE = `Usage: node preflight.mjs [--dir <workspace>] [--json]
 
   --dir <path>  workspace folder holding profile.json (default ./.wheretosubmit)
-  --json        print a machine-readable result instead of the text report
+  --json        print a machine-readable result (errors, warnings, facts for the readiness checklist)
 `;
 
 /** @param {string} text */
@@ -105,7 +105,8 @@ function main() {
   const ok = report.errors.length === 0;
 
   if (args.json) {
-    out(`${JSON.stringify({ ok, dir: args.dir, schema: SCHEMA_ID, errors: report.errors, warnings, stats: report.stats }, null, 2)}\n`);
+    const facts = 'problem' in loaded ? null : summarizeProfile(loaded.profile, args.dir);
+    out(`${JSON.stringify({ ok, dir: args.dir, schema: SCHEMA_ID, errors: report.errors, warnings, stats: report.stats, facts }, null, 2)}\n`);
   } else {
     printText(args.dir, report.errors, warnings, report.stats);
   }

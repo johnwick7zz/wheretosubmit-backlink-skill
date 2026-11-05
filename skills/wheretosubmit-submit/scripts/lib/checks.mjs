@@ -7,7 +7,7 @@ import { readImageInfo } from './image-size.mjs';
 
 export const SCHEMA_ID = 'wheretosubmit-profile/v1';
 
-const TOP_KEYS = ['schema', 'updatedAt', 'source', 'product', 'copy', 'pricing', 'assets', 'contact', 'links', 'permissions', 'extra'];
+const TOP_KEYS = ['schema', 'updatedAt', 'source', 'product', 'copy', 'pricing', 'assets', 'contact', 'links', 'accounts', 'permissions', 'extra'];
 const PRICING_MODELS = ['free', 'freemium', 'free-trial', 'paid', 'open-source', 'contact'];
 const COMMON_COPY = ['short160', 'medium500', 'long1500'];
 const VARIANT_KEY = /^(\p{L}[\p{L}_]*?)(\d+)$/u;
@@ -313,6 +313,33 @@ function checkPermissions(c, p) {
   if (perms.neverShare !== undefined) expectStringArray(c, 'permissions.neverShare', perms.neverShare, 'optional');
 }
 
+/**
+ * accounts: optional. With allowRegistration on and no usable default account,
+ * every account-gated site gets skipped, so say so up front.
+ * @param {Collector} c @param {Record<string, unknown>} p
+ */
+function checkAccounts(c, p) {
+  const perms = isObject(p.permissions) ? p.permissions : {};
+  if (p.accounts === undefined || p.accounts === null) {
+    if (perms.allowRegistration === true) c.warn('accounts', 'allowRegistration is on but no accounts section; account-gated sites will be skipped');
+    return;
+  }
+  const accounts = section(c, p, 'accounts', false);
+  const def = accounts.default;
+  if (def !== undefined && def !== null) {
+    if (!isObject(def)) c.error('accounts.default', 'must be an object with email / password / username');
+    else {
+      if (def.email !== null && def.email !== undefined) {
+        if (typeof def.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(def.email)) c.error('accounts.default.email', 'not an email address');
+      }
+      if (def.password !== null && def.password !== undefined && typeof def.password !== 'string') c.error('accounts.default.password', 'must be a string or null');
+      if (typeof def.password === 'string' && def.password.length > 0) c.warn('accounts', 'contains a password; make sure .wheretosubmit/ is in .gitignore');
+      if (perms.allowRegistration === true && isBlank(def.email)) c.warn('accounts.default.email', 'allowRegistration is on but no account email; the agent will ask before every sign-up');
+    }
+  }
+  if (accounts.sites !== undefined && !isObject(accounts.sites)) c.error('accounts.sites', 'must be an object keyed by domain');
+}
+
 /** @param {Collector} c @param {Record<string, unknown>} p */
 function checkExtra(c, p) {
   if (p.extra === undefined) return;
@@ -329,6 +356,85 @@ function checkExtra(c, p) {
  * @param {string} dir workspace directory (absolute)
  * @returns {Report}
  */
+/**
+ * Compact facts for the readiness checklist: what is there, how long, how big.
+ * No text bodies and nothing from `accounts` except whether a value is set.
+ * @param {unknown} profile @param {string} dir
+ */
+export function summarizeProfile(profile, dir) {
+  if (!isObject(profile)) return null;
+  const obj = (v) => (isObject(v) ? v : {});
+  const str = (v) => (typeof v === 'string' && !isBlank(v) ? v : null);
+  const product = obj(profile.product);
+  const copy = obj(profile.copy);
+  const pricing = obj(profile.pricing);
+  const assets = obj(profile.assets);
+  const contact = obj(profile.contact);
+  const accounts = obj(profile.accounts);
+  const def = obj(accounts.default);
+  const mailbox = obj(accounts.mailbox);
+  const perms = obj(profile.permissions);
+
+  /** @type {Record<string, Record<string, number>>} copy lengths per language, e.g. { en: { tagline: 72, short160: 118 } } */
+  const copyLengths = {};
+  for (const lang of ownKeys(copy)) {
+    const variants = obj(copy[lang]);
+    const lengths = {};
+    for (const key of ownKeys(variants)) {
+      const value = variants[key];
+      if (typeof value === 'string' && !isBlank(value)) lengths[key] = charCount(value);
+    }
+    copyLengths[lang] = lengths;
+  }
+
+  const imageInfo = (rel) => {
+    if (typeof rel !== 'string' || isBlank(rel) || /^https?:\/\//i.test(rel)) return null;
+    const abs = path.resolve(dir, rel);
+    if (!existsSync(abs) || !statSync(abs).isFile()) return { file: rel, exists: false };
+    try {
+      const info = readImageInfo(abs);
+      return 'width' in info ? { file: rel, exists: true, width: info.width, height: info.height } : { file: rel, exists: true };
+    } catch {
+      return { file: rel, exists: true };
+    }
+  };
+  const shots = Array.isArray(assets.screenshots) ? assets.screenshots.map(imageInfo).filter(Boolean) : [];
+
+  return {
+    updatedAt: str(profile.updatedAt),
+    product: {
+      name: str(product.name),
+      url: str(product.url),
+      categories: Array.isArray(product.categories) ? product.categories.filter((v) => typeof v === 'string' && !isBlank(v)) : [],
+    },
+    copy: copyLengths,
+    pricing: { model: str(pricing.model), startingPrice: str(pricing.startingPrice) },
+    assets: {
+      logoSquare: imageInfo(assets.logoSquare),
+      logoWide: imageInfo(assets.logoWide),
+      ogImage: imageInfo(assets.ogImage),
+      screenshots: shots,
+    },
+    contact: {
+      email: str(contact.email),
+      submitterName: str(contact.submitterName),
+      founderName: str(contact.founderName),
+    },
+    accounts: {
+      email: str(def.email),
+      hasPassword: typeof def.password === 'string' && def.password.length > 0,
+      mailboxUrl: str(mailbox.url),
+      mailboxHasPassword: typeof mailbox.password === 'string' && mailbox.password.length > 0,
+      siteOverrides: ownKeys(obj(accounts.sites)).length,
+    },
+    permissions: {
+      allowRegistration: perms.allowRegistration === true,
+      allowCaptchaHandoff: perms.allowCaptchaHandoff !== false,
+      allowPaid: perms.allowPaid === true,
+    },
+  };
+}
+
 export function checkProfile(profile, dir) {
   const c = new Collector();
   if (!isObject(profile)) {
@@ -343,6 +449,7 @@ export function checkProfile(profile, dir) {
   checkContact(c, profile);
   checkLinks(c, profile);
   checkPermissions(c, profile);
+  checkAccounts(c, profile);
   checkExtra(c, profile);
   return c;
 }

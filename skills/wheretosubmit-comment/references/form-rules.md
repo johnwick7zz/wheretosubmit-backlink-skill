@@ -112,7 +112,7 @@ the whole run and tell the user. The identity may be on a list.
 | `rejected` | site refused the content | `rejected` |
 | `unusable` | the page cannot take this comment (no form, closed, widget, login, email verification, dead, no article, required field) | `unusable` |
 | `skipped-captcha` | CAPTCHA and handoff not allowed | none |
-| `skipped-no-fit` | no linked page fits the post | none |
+| `unusable` (off-topic) | no linked page fits the post; the mismatch is about this project | `unusable` |
 | `skipped-ai-failed` | could not write a passing comment in two tries | none |
 | `failed-load` | timeout or browser error | none |
 | `unknown` | submitted, nothing visible | none |

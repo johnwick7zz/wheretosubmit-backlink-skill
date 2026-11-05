@@ -52,6 +52,14 @@
   .todo h2 { font-size: 16px; margin: 0 0 8px; }
   .todo ul { margin: 0; padding-left: 20px; }
   .todo li { margin: 4px 0; }
+  .readiness { margin: 20px 0 28px; }
+  .readiness h2 { font-size: 16px; margin: 0 0 4px; }
+  .readiness .when { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  .readiness table { margin-bottom: 10px; }
+  .readiness td.mark { width: 28px; text-align: center; }
+  .readiness td.item { white-space: nowrap; color: var(--fg); }
+  .readiness td.result { color: var(--muted); word-break: break-word; }
+  .readiness .group { font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
   .empty { color: var(--muted); padding: 24px 0; text-align: center; }
   footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
 </style>
@@ -80,6 +88,11 @@
     </select>
     <input id="q" type="search" placeholder="Filter by site or evidence">
   </div>
+  <section class="readiness" id="readiness" hidden>
+    <h2>Readiness check</h2>
+    <p class="when" id="readiness-when"></p>
+    <div id="readiness-groups"></div>
+  </section>
   <table>
     <thead>
       <tr><th>Site</th><th>Status</th><th>Check</th><th>Evidence</th><th>Screenshot</th><th>Updated</th></tr>
@@ -110,6 +123,7 @@
 {
   "project": { "name": "", "productUrl": "" },
   "generatedAt": "",
+  "readiness": { "checkedAt": "", "rows": [] },
   "sites": [],
   "comments": []
 }
@@ -127,11 +141,12 @@
       return {
         project: parsed.project || {},
         generatedAt: parsed.generatedAt || '',
+        readiness: parsed.readiness && typeof parsed.readiness === 'object' ? parsed.readiness : { checkedAt: '', rows: [] },
         sites: Array.isArray(parsed.sites) ? parsed.sites : [],
         comments: Array.isArray(parsed.comments) ? parsed.comments : []
       };
     } catch (e) {
-      return { project: {}, generatedAt: '', sites: [], comments: [] };
+      return { project: {}, generatedAt: '', readiness: { checkedAt: '', rows: [] }, sites: [], comments: [] };
     }
   }
 
@@ -277,6 +292,36 @@
     document.getElementById('comments').hidden = false;
   }
 
+  var MARKS = { pass: '\u2705', confirm: '\u26A0\uFE0F', missing: '\u274C', na: '\u2796' };
+
+  /** The checklist the run started from (SKILL.md step 7); groups keep the order they were written in. */
+  function renderReadiness() {
+    var rows = Array.isArray(data.readiness.rows) ? data.readiness.rows : [];
+    if (rows.length === 0) return;
+    var box = document.getElementById('readiness-groups');
+    var groups = [];
+    rows.forEach(function (row) {
+      var name = text(row.group) || 'Other';
+      var group = groups.filter(function (g) { return g.name === name; })[0];
+      if (!group) { group = { name: name, rows: [] }; groups.push(group); }
+      group.rows.push(row);
+    });
+    groups.forEach(function (group) {
+      box.appendChild(el('div', { class: 'group', text: group.name }));
+      var body = el('tbody', {}, group.rows.map(function (row) {
+        return el('tr', {}, [
+          el('td', { class: 'mark', text: MARKS[row.mark] || MARKS.na }),
+          el('td', { class: 'item', text: text(row.item) }),
+          el('td', { class: 'result', text: text(row.result) })
+        ]);
+      }));
+      box.appendChild(el('table', {}, [body]));
+    });
+    var when = text(data.readiness.checkedAt);
+    document.getElementById('readiness-when').textContent = when ? 'Checked ' + when : '';
+    document.getElementById('readiness').hidden = false;
+  }
+
   function renderTodo() {
     var items = [];
     sites.forEach(function (site) {
@@ -292,6 +337,7 @@
 
   renderHeader();
   renderCounts();
+  renderReadiness();
   renderRows();
   renderComments();
   renderTodo();

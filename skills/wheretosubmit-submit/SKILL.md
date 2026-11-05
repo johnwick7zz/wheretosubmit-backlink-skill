@@ -18,8 +18,11 @@ What you need:
   is the one this skill is tested with (the user shares the window and can
   take over a CAPTCHA); Claude in Chrome, the desktop built-in browser and
   Playwright MCP also work.
-- A mail tool for sites that verify by email. Use whichever is available
-  (Gmail MCP, an IMAP script, ...). Without one, those sites are skipped.
+- A way to read the `contact.email` mailbox for codes and links. The default
+  is webmail in the same browser: with `accounts` filled in, the agent logs
+  into mail.163.com / mail.qq.com / Gmail / Outlook itself and reads the
+  verification messages there. A mail MCP or IMAP script works too. With
+  neither, email-verify and account sites are skipped.
 - Node 20+ to run `scripts/preflight.mjs` (optional but recommended).
 
 Paths in this file are relative to this SKILL.md.
@@ -28,8 +31,10 @@ Paths in this file are relative to this SKILL.md.
 
 1. Never pay. With `permissions.allowPaid` true, go as far as the checkout
    page and hand it to the user; never type payment details.
-2. Never register accounts unless `permissions.allowRegistration` is true or
-   the user says so for this run. Never create or store passwords.
+2. Register or sign in only when `permissions.allowRegistration` is true (or
+   the user says so for this run), and only with the credentials in
+   `accounts`. Never invent a password, never store one the user did not
+   give, never type credentials into a site other than the one they are for.
 3. Never solve, click through or bypass a visible CAPTCHA. With
    `allowCaptchaHandoff` true (default), fill the form and hand the CAPTCHA to
    the user.
@@ -42,7 +47,10 @@ Paths in this file are relative to this SKILL.md.
    checked later (see evidence.md). Mark `rejected` only when the site said
    no. Use `unusable` with a reason for dead, paid-only (when paying is not
    allowed), off-topic or blocked sites.
-7. If you cannot read the mailbox, do not start email-verify or account sites.
+7. If you cannot read the mailbox (webmail login failed and no mail tool), do
+   not start email-verify or account sites.
+10. Never choose targets before the readiness checklist (step 7) has been
+    shown to the user in this run. Any ❌ row means wait for the user.
 8. Never edit the user's website (badges, backlinks). List what is needed.
 9. When something unexpected happens, stop and tell the user instead of guessing.
 
@@ -71,7 +79,8 @@ Paths in this file are relative to this SKILL.md.
    come back with `gated: true` (no `submitUrl`, method or tips). Tell the
    user and ask whether to continue with results kept only in the final report.
 4. Name the browser tool you will use. No browser tool: stop.
-5. Name the mail tool you will use, or say there is none.
+5. Say how you will read mail: webmail in the browser (default when
+   `accounts` has credentials), a mail tool, or none.
 
 ### 2. Pick the project
 
@@ -84,7 +93,7 @@ Paths in this file are relative to this SKILL.md.
 4. No match: call `create_project` with `name` and `productUrl`.
 5. `possible_duplicate`: show the candidates and ask. Call again with
    `confirm: true` only if the user wants a new project.
-6. `project_quota_exceeded`: the user has 10 active projects; ask them to
+6. `project_quota_exceeded`: the user hit their active-project limit (9 monthly, 99 lifetime); ask them to
    archive one on the website.
 
 ### 3. Set up the workspace and profile
@@ -102,7 +111,7 @@ names another folder.
 
 There is no local ledger. Progress lives only in the MCP. `report.html` is a
 read-only copy for the user, generated from `project_status` at the end of
-each run (step 9).
+each run (step 10).
 
 If `profile.json` is missing:
 
@@ -116,9 +125,9 @@ If `profile.json` is missing:
    files; otherwise ask the user for them.
 4. Leave unknown facts `null`. Do not fill company size, founding year,
    address or similar from guesses.
-5. Show the user a short summary (name, URL, tagline, pricing model,
-   categories, contact email, permissions) plus the list of nulls, and ask
-   them to confirm or correct. Then set `updatedAt`.
+5. Set `updatedAt`. The user sees and confirms the profile through the
+   readiness checklist (step 7); do not ask separately here, unless a core
+   fact (name, URL, contact email) could not be found anywhere.
 6. Suggest adding `.wheretosubmit/evidence/` to `.gitignore`.
 
 If it exists, read it and keep it; only add to it (new length variants,
@@ -137,9 +146,11 @@ again. Without Node, check the core fields by hand against profile-schema.md.
 ### 5. Check the mailbox
 
 Follow "Before the batch" in
-[references/email-verification.md](references/email-verification.md).
-Record the result: mailbox readable or not. Not readable means no
-email-verify and no account sites this run.
+[references/email-verification.md](references/email-verification.md): open
+the webmail in its own tab, sign in with `accounts.mailbox` (or
+`accounts.default`), and leave that tab open for the whole run. Record the
+result: mailbox readable or not. Not readable means no email-verify and no
+account sites this run.
 
 ### 6. Handle follow-ups from earlier runs
 
@@ -160,22 +171,53 @@ search the site when it is missing or dead.
 - `awaiting_review` older than 7 days: open the check URL. Listed: mark
   `approved` with `Check: <listing url>`. Not listed: leave it. Never resubmit.
 
-### 7. Choose targets
+### 7. Readiness checklist
+
+Mandatory, once per run, before any target is chosen. Put together what
+steps 1 to 6 found and show it as the checklist in
+[references/checklist.md](references/checklist.md): five fixed groups
+(connection, product profile, accounts and mail, scope, follow-ups), one
+mark per row (✅ verified, ⚠️ default assumed, ❌ blocks sites, ➖ not this
+run), then a numbered "Needs you" list with "add" items before "confirm"
+items.
+
+Every row is something you actually did this run: the MCP call, the tab you
+opened, the webmail you signed into, `preflight.mjs --json` (`facts`,
+`errors`, `warnings`), `project_status` for follow-ups. Do not fill a row
+from memory of an earlier run.
+
+Any ❌: stop and wait; when the user has supplied what was missing, update
+those rows and continue. Only ⚠️ or ✅: continue to step 8 in the same
+message; the target plan's go-ahead also covers the confirm items. Keep the
+rows: step 10 writes them into the report.
+
+### 8. Choose targets
 
 1. Ask how many sites (default 10) and whether to focus on a category.
-2. Call `next_targets` with the project id and `limit`. Add
-   `pricing: "free"` unless `allowPaid` is true. Use `gate` to run one kind at
-   a time: `open-form` first; `email-verify` only with a readable mailbox;
-   `captcha` when the user is around to solve them. `category` narrows to
-   relevant directories.
-3. Set aside complex sites (Product Hunt, G2, Capterra-type marketplaces)
+2. Call `next_targets` with the project id and a `limit` about twice the
+   number you need, so there is room to drop sites. Add `pricing: "free"`
+   unless `allowPaid` is true, and `linkType: "dofollow"` when the user wants
+   links that count (unchecked sites are then left out; drop the filter to
+   include them). `category` narrows to relevant directories.
+3. Drop from the result every site whose `verdictEn` starts with "Skip",
+   says the site is down, or says it is not a submission site. Read the
+   other verdicts: they tell you what the free tier gets, whether a badge is
+   expected, and how long the queue is. Keep that in mind, but the page you
+   open is the truth.
+4. Order the rest by `gate`: `open-form` first, then `email-verify` and
+   `account` (both work on their own once the mailbox is open), then
+   `reciprocal`, and `captcha` last, grouped together so the user can solve
+   them in one sitting. `gate` is a hint from an earlier check, not a rule:
+   classify the page you see.
+5. Set aside complex sites (Product Hunt, G2, Capterra-type marketplaces)
    unless the user asked for them; they follow
    [references/complex-sites.md](references/complex-sites.md).
-4. Show the plan (name, domain, DR, gate, pricing) and get one go-ahead.
-   After that, work through the list without asking per site, except where a
-   rule says ask.
+6. Show the plan (name, domain, DR, gate, pricing, one line of verdict)
+   under the checklist and get one go-ahead; that reply also settles the
+   checklist's confirm items. After that, work through the list without
+   asking per site, except where a rule says ask.
 
-### 8. Submit, one site at a time
+### 9. Submit, one site at a time
 
 For each site:
 
@@ -184,13 +226,13 @@ For each site:
    `submitUrl`, `submissionMethod`, `tips`, `pricing` and `priceText`. If
    `gated` is true, find the submit page from `homepageUrl` yourself.
 2. **Open the site** in the browser, in a new tab.
-3. **Look for an existing listing**, in this order:
-   1. the site's own search, for the product name, alternate names and domain;
-   2. a web search for `site:<domain> "<product name>"`;
-   3. likely listing URLs such as `/tools/<slug>`, `/product/<slug>`, `/<slug>`.
-
-   Check in the browser, since many directories render search results with
-   JavaScript. Found: mark `approved`, evidence = listing URL, and move on.
+3. **Look for an existing listing.** One check, not three: use the site's
+   own search for the product name (and the domain if the first search is
+   empty). Only when the site has no search box, try one likely listing URL
+   such as `/tools/<slug>` or `/<slug>`. Skip the web search; most
+   directories' pages are not indexed by name anyway, and a duplicate
+   submission is caught by the site. Found: mark `approved`, evidence =
+   listing URL, and move on.
 4. **Classify the page** you see (paid wall, account, captcha, badge,
    personal fields) and compare with `permissions`. Follow
    [references/gates.md](references/gates.md) for that gate.
@@ -245,23 +287,36 @@ You pressed submit and saw no confirmation and no error.
 4. It will show up again in `next_targets` next run. Check for the listing
    first and ask the user before trying again.
 
-### Stop and ask the user
+### Keep moving; collect questions
 
-Stop the run and ask when:
+The run should not stall on one site. Stop the run only for:
 
-- a page asks for payment details, or a price appears where none was expected;
-- a required fact is missing from the profile and `extra` (ask once, save it);
-- terms ask for something unusual: fees, renewals, exclusive rights, an
-  unexpected backlink;
-- the browser shows a download, a permission prompt (notifications,
-  extensions, location), or a page that looks unsafe;
-- you cannot classify a page;
-- an MCP call fails with anything other than the expected errors in
+- a page asking for payment details, or a price on the only path when
+  `allowPaid` is true (hand over the tab);
+- the browser showing a download, a permission prompt, or a page that looks
+  unsafe;
+- an MCP call failing with anything other than the expected errors in
   `docs/mcp.md`;
-- three sites in a row fail the same way (likely a browser or session problem);
-- an action would change the user's own accounts, website or settings.
+- three sites in a row failing the same way (likely a browser or session
+  problem);
+- an action that would change the user's own website or settings.
 
-### 9. Report
+Everything else is a note, not a stop:
+
+- a required fact missing from the profile and `extra`: leave the site
+  unmarked, put the question in the "Needs you" list, and continue; ask all
+  collected questions together at the end (or at a natural break), save the
+  answers to `extra`, and come back to those sites in the same run if time
+  allows;
+- unusual terms (fees, renewals, exclusive rights, an unexpected backlink):
+  do not submit; mark `unusable` with the term quoted, unless it is a badge
+  requirement, which is the `reciprocal` gate;
+- a price where none was expected and `allowPaid` is false: look for a free
+  path; none means `unusable` ("paid only: <price>"); never stop to ask;
+- a page you cannot classify: leave it unmarked with a one-line note and move
+  on.
+
+### 10. Report
 
 Two outputs: the summary in chat, and `<workspace>/report.html`.
 
@@ -283,6 +338,7 @@ Two outputs: the summary in chat, and `<workspace>/report.html`.
 {
   "project": { "name": "<project name>", "productUrl": "<url>" },
   "generatedAt": "<yyyy-mm-dd hh:mm local>",
+  "readiness": { "checkedAt": "<yyyy-mm-dd hh:mm local>", "rows": [ { "group": "Connection", "item": "MCP", "mark": "pass", "result": "..." } ] },
   "sites": [
     {
       "name": "Example", "domain": "example.com",
@@ -299,6 +355,8 @@ Two outputs: the summary in chat, and `<workspace>/report.html`.
 }
 ```
 
+- `readiness.rows` are the checklist rows from step 7 (`mark`: `pass`,
+  `confirm`, `missing`, `na`), in the order shown, no secrets in `result`.
 - `status` is `approved`, `submitted`, `rejected`, `unusable` or `unmarked`.
 - `check` is the URL from the `Check:` prefix of the evidence; for an
   unmarked site, the submit page so the user can finish it. `evidence` is the
@@ -339,6 +397,7 @@ Leave out empty checklist lines.
 ## References
 
 - [references/profile-schema.md](references/profile-schema.md): every profile field, tiers, limits
+- [references/checklist.md](references/checklist.md): readiness checklist rows, marks, example
 - [references/field-mapping.md](references/field-mapping.md): filling forms by meaning, length rules
 - [references/gates.md](references/gates.md): playbook per gate
 - [references/email-verification.md](references/email-verification.md): mailbox check, codes, magic links

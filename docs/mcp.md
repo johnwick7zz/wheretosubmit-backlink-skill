@@ -51,12 +51,12 @@ Keep the token out of git. Treat it like a password.
 | --- | --- |
 | `list_projects` | Your active projects (`id`, `name`, `productUrl`, `domain`) plus `plan` and `isPro`. `domain` is the bare host of `productUrl` (lowercase, no `www.`), or `null`. Call it first. |
 | `project_status` | Sites already marked for a project, newest first. Filter by `status` and/or `followup`; page with `limit` (max 100) and `cursor`. Each item has `source` (`manual` or `mcp`), `evidence` and `followup` (or `null`). |
-| `next_targets` | Published sites this project has no mark on yet, highest DR first. `limit` (default 10, max 50), filters: `pricing`, `minDr`, `category`, `gate`, `search`. |
-| `get_site` | Full detail for one site by `siteId` or `domain` (a URL works too), English and Chinese text. Pass `projectId` to also get that project's mark (`status`, `source`, `evidence`, `followup`, `updatedAt`). |
+| `next_targets` | Published sites this project has no mark on yet, highest DR first. `limit` (default 10, max 50), filters: `pricing`, `minDr`, `category`, `gate`, `linkType` (`dofollow`/`nofollow`, checked sites only), `search`. Every item carries the public `summaryEn` (what the site is) and `verdictEn` (one-sentence call; a verdict starting with "Skip" means don't bother). |
+| `get_site` | Full detail for one site by `siteId` or `domain` (a URL works too), English and Chinese text, plus the public `summary` and `verdict` (`{ en, zh }`). Pass `projectId` to also get that project's mark (`status`, `source`, `evidence`, `followup`, `updatedAt`). |
 | `mark_status` | Pro only. Record up to 25 marks at once: `{ siteId, status, evidence?, followup? }`. Each mark replaces the old one, so leaving out `evidence` or `followup` clears it. |
 | `create_project` | Pro only. `{ name, productUrl?, confirm? }`. Creates a project and returns `{ project, created: true }`. Checks for duplicates first, see below. |
 | `update_project` | Pro only. `{ projectId, name?, productUrl? }`. Renames a project or sets/replaces its `productUrl` (it can't be cleared). Returns `{ project }`. |
-| `next_comment_targets` | Pro only. Blog pages with an open comment box that this project has not commented on, in a fixed order (`commentLinkId` ascending). `limit` (default 10, max 25), filters: `category`, `minAs`, `search` (domain). `onePerDomain` (default `true`) returns one page per domain, the highest-scoring one, and skips domains that already have any mark for this project. Each item: `commentLinkId`, `domain`, `url`, `authorityScore`, `category`. |
+| `next_comment_targets` | Pro only. Blog pages with an open comment box that this project has not commented on, highest authority score first (ties by `commentLinkId`). `limit` (default 10, max 25), filters: `category`, `minAs`, `search` (domain). `onePerDomain` (default `true`) returns one page per domain, the highest-scoring one, and skips domains that already have any mark for this project. Each item: `commentLinkId`, `domain`, `url`, `authorityScore`, `category`. |
 | `mark_comment` | Pro only. Record up to 25 comment results: `{ commentLinkId, status }`. Status only; the comment's URL and text stay in the agent's local report. Upsert, so re-sending is safe. |
 
 Statuses: `submitted`, `approved`, `rejected`, `unusable`. For blog comments
@@ -82,7 +82,7 @@ mark yourself on the website, its `evidence` and `followup` are cleared and
 
 Project names keep the first 80 characters. `productUrl` must start with
 `http://` or `https://`, be at most 500 characters and have a real host name,
-otherwise you get `invalid_url`. You can have 10 active projects; archived ones
+otherwise you get `invalid_url`. Monthly plans have 9 active projects, lifetime 99; archived ones
 don't count.
 
 ### Picking the project

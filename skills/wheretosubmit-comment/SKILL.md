@@ -123,12 +123,21 @@ disposable email, no pages, bad URLs): fix them with the user and run again.
 
 ### 5. Choose pages
 
+Before new pages, revisit last run's `submitted` entries in the local report
+(up to 10): open each `commentUrl` or page URL, see whether the comment is
+now visible, and if so record its `rel` (dofollow / nofollow / ugc) in the
+report and re-mark the page `approved`. A page that deleted the comment or
+still shows nothing after 14 days: leave the mark, note "not visible".
+
+
 1. Ask how many pages (default `run.count`) and whether to focus on a
    category.
 2. Call `next_comment_targets` with the project id, `limit`, and optionally
-   `category` or `minAs`. The result is already one page per domain and
-   skips domains with any mark. Do not pass `onePerDomain: false` unless the
-   user asks for a second comment on a domain they named.
+   `category` or `minAs`. The result is already one page per domain, skips
+   domains with any mark, and comes highest authority score first, so a
+   ten-page run starts with the domains worth the most. Do not pass
+   `onePerDomain: false` unless the user asks for a second comment on a
+   domain they named.
 3. Show the plan (domain, URL, score, category) and get one go-ahead. After
    that, work through the list without asking per page, except where a rule
    says ask.
@@ -153,8 +162,10 @@ For each page, in a new tab:
    it is there, outcome `approved` with its URL, and move on.
 5. **Pick the link.** Choose the entry in `pages` whose `topics` best match
    the post. No honest match: pick the closest page and keep the link mention
-   light (see comment-writing.md), or, if nothing fits at all, skip the page
-   with outcome `skipped-no-fit` (no mark).
+   light (see comment-writing.md). If nothing fits at all (a recipe blog for
+   a lab tool), mark the page `unusable` with the reason "off-topic for this
+   product": the mismatch is about this project, not the page, so leaving it
+   unmarked only brings it back next run.
 6. **Decide the placement.** By default (`linkInBody: "always"`) the link
    goes in the body as one `<a href>` inside a sentence near the end, and the
    website field, when present, gets the product URL as well. With
@@ -208,7 +219,8 @@ For each page, in a new tab:
 | Page says awaiting moderation | `submitted` |
 | Site refused it (spam notice, content error) | `rejected` |
 | No form, closed, third-party widget, login or email verification, dead page, no article, required field you cannot fill | `unusable` |
-| Skipped (captcha not allowed, no fitting page, could not write a passing comment) | no mark |
+| Off-topic for this product (nothing in `pages` fits) | `unusable` |
+| Skipped (captcha not allowed, could not write a passing comment) | no mark |
 | Outcome unknown | no mark |
 
 ### Stop and ask the user
@@ -223,9 +235,9 @@ For each page, in a new tab:
 ### 7. Report
 
 `<workspace>/report.html` is shared with the submit skill. Its data block
-has two keys: `sites` (directory marks, owned by the submit skill) and
-`comments` (owned by this skill). Read the current file, keep `sites` and
-every existing `comments` entry, append this run's entries, and write the
+has three keys: `sites` and `readiness` (owned by the submit skill) and
+`comments` (owned by this skill). Read the current file, keep `sites`,
+`readiness` and every existing `comments` entry, append this run's entries, and write the
 file back; copy `templates/report.html` from the submit skill first if the
 file does not exist. Never drop another run's entries.
 

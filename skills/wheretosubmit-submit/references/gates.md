@@ -36,15 +36,22 @@ are not a captcha gate. Carry on unless a visible challenge appears.
 
 ## email-verify
 
-Only if the mailbox check passed at the start of the run.
+Only if the mailbox check passed at the start of the run (webmail tab open,
+or a mail tool).
 
-1. Note the time, then submit.
-2. Follow email-verification.md to find the code or link and complete it.
+Batch these instead of waiting on each one:
+
+1. Submit the form, note the time, and move straight on to the next site.
+   Keep a list: site, time submitted, what the page said.
+2. After every three or four email-verify sites (or at the end of the group),
+   switch to the mailbox tab once and work through the list: find each
+   site's message, click the link or copy the code into the site's tab, and
+   read the result page (email-verification.md).
 3. Confirmed: mark `submitted` with `Check: <url>` and what the page and
    email said.
-4. Page confirmed the form but no email came: mark `submitted` with
-   `followup: "verify_email"` and the evidence "Check: <submit or status
-   url>. page said check email, no email within N minutes".
+4. Page confirmed the form but no email after the batch round: mark
+   `submitted` with `followup: "verify_email"` and the evidence "Check:
+   <submit or status url>. page said check email, no email within N minutes".
 5. Mailbox not readable: skip the site, leave it unmarked, list it in the report.
 
 ## account
@@ -57,19 +64,29 @@ Only if the mailbox check passed at the start of the run.
    Leave the site unmarked and list it under "needs your account" in the
    report, with the sign-up URL.
 
-`allowRegistration` true:
+`allowRegistration` true (the user wants you to handle accounts yourself):
 
-1. Prefer sign-in methods that need no new password, such as an existing
-   Google session the user already has in this browser, and only with the
-   account matching `contact.email`.
-2. If a password is needed, ask the user to type it into the browser. Never
-   create, store or write down a password yourself.
-3. Account verification emails follow email-verification.md.
-4. Then continue as open-form.
-
-A form that silently creates an account on submit ("we created an account
-for you") counts as account. Check the page text near the submit button
-before clicking.
+1. Use `accounts.sites[<domain>]` if it exists, else `accounts.default`.
+   Try "Sign in" first (the account may already exist), then "Sign up".
+2. With an email and password: fill them in, submit, finish any email
+   verification through the mailbox tab (email-verification.md), then
+   continue as open-form. Do not stop to ask; the user gave you these for
+   exactly this.
+3. With an email but `password: null`: use "Sign in with Google" (or GitHub)
+   only when the browser already holds a session for that same email;
+   otherwise leave the site unmarked under "needs your account" and ask for a
+   password in the end-of-run questions, once for all such sites.
+4. The site rejects the password (length, symbols, "already in use"): do not
+   invent a variant. Leave the site unmarked, put one question in the
+   end-of-run list, and when the user answers, save it to
+   `accounts.sites[<domain>]` and finish the site.
+5. Never type these credentials anywhere except that site's own login or
+   sign-up form (check the domain in the address bar first), never into
+   `evidence`, chat or the report. "Account created" is not a confirmation of
+   the listing; the listing still needs its own confirmation.
+6. A form that silently creates an account on submit ("we created an account
+   for you") counts as account. Check the page text near the submit button
+   before clicking.
 
 ## captcha
 
