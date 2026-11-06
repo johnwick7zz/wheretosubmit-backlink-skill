@@ -23,7 +23,8 @@ What you need:
   into mail.163.com / mail.qq.com / Gmail / Outlook itself and reads the
   verification messages there. A mail MCP or IMAP script works too. With
   neither, email-verify and account sites are skipped.
-- Node 20+ to run `scripts/preflight.mjs` (optional but recommended).
+- Node 20+ to run `scripts/preflight.mjs` and `scripts/probe.mjs` (optional
+  but recommended).
 
 Paths in this file are relative to this SKILL.md.
 
@@ -49,10 +50,10 @@ Paths in this file are relative to this SKILL.md.
    allowed), off-topic or blocked sites.
 7. If you cannot read the mailbox (webmail login failed and no mail tool), do
    not start email-verify or account sites.
-10. Never choose targets before the readiness checklist (step 7) has been
-    shown to the user in this run. Any ❌ row means wait for the user.
-8. Never edit the user's website (badges, backlinks). List what is needed.
-9. When something unexpected happens, stop and tell the user instead of guessing.
+8. Never choose targets before the readiness checklist (step 7) has been
+   shown to the user in this run. Any ❌ row means wait for the user.
+9. Never edit the user's website (badges, backlinks). List what is needed.
+10. When something unexpected happens, stop and tell the user instead of guessing.
 
 ## Workflow
 
@@ -107,6 +108,7 @@ names another folder.
   assets/           logo-512.png, wide logo, og image, screenshots
   evidence/         confirmation screenshots: <site-domain>-<yyyymmdd>.png
   report.html       one page with every site's status, rebuilt after each run
+  targets.json      the last next_targets result, input for probe.mjs (overwritten each run)
 ```
 
 There is no local ledger. Progress lives only in the MCP. `report.html` is a
@@ -194,21 +196,44 @@ rows: step 10 writes them into the report.
 ### 8. Choose targets
 
 1. Ask how many sites (default 10) and whether to focus on a category.
-2. Call `next_targets` with the project id and a `limit` about twice the
-   number you need, so there is room to drop sites. Add `pricing: "free"`
-   unless `allowPaid` is true, and `linkType: "dofollow"` when the user wants
-   links that count (unchecked sites are then left out; drop the filter to
-   include them). `category` narrows to relevant directories.
+2. Call `next_targets` with the project id, `brief: true`, and a `limit`
+   about twice the number you need, so there is room to drop sites. Add
+   `pricing: "free"` unless `allowPaid` is true, and `linkType: "dofollow"`
+   when the user wants links that count (unchecked sites are then left out;
+   drop the filter to include them). `category` narrows to relevant
+   directories. Put every domain you opened earlier this run but left
+   unmarked (captcha waiting, outcome unknown, over budget) in
+   `excludeDomains`, so they do not come back. Need more: call again with
+   the returned `nextCursor` instead of changing filters. The brief list has
+   no tips or method; `get_site` in step 9 brings those for the sites you
+   keep.
 3. Drop from the result every site whose `verdictEn` starts with "Skip",
    says the site is down, or says it is not a submission site. Read the
    other verdicts: they tell you what the free tier gets, whether a badge is
    expected, and how long the queue is. Keep that in mind, but the page you
    open is the truth.
+3b. Probe the rest before opening any of them. Save the targets to
+   `<workspace>/targets.json` and run
+
+   ```
+   node <skill-folder>/scripts/probe.mjs --input <workspace>/targets.json
+   ```
+
+   It fetches every submit page at once (plain HTTP, a few seconds) and
+   sorts them: `form` (a form with a URL field; open these first), `unknown`
+   (JS-rendered, open and see), `captcha`, `login` (account gate), `paid`
+   (prices and no free wording; handle per gates.md or skip), `no-form`,
+   `blocked` (bot wall; a real browser may pass), `dead` (connection error,
+   404, parked). Use it to order and to drop: open a `dead` site once in the
+   browser to confirm, then mark `unusable`; put `paid` ones last. The probe
+   reads static HTML only, so it is a hint; the page you open decides.
 4. Order the rest by `gate`: `open-form` first, then `email-verify` and
    `account` (both work on their own once the mailbox is open), then
    `reciprocal`, and `captcha` last, grouped together so the user can solve
-   them in one sitting. `gate` is a hint from an earlier check, not a rule:
-   classify the page you see.
+   them in one sitting. Within a gate, put sites whose verdict names a free
+   path before sites with `pricing: "unknown"`, so the uncertain ones do not
+   eat the start of the run. `gate` is a hint from an earlier check, not a
+   rule: classify the page you see.
 5. Set aside complex sites (Product Hunt, G2, Capterra-type marketplaces)
    unless the user asked for them; they follow
    [references/complex-sites.md](references/complex-sites.md).
@@ -231,20 +256,30 @@ For each site:
    empty). Only when the site has no search box, try one likely listing URL
    such as `/tools/<slug>` or `/<slug>`. Skip the web search; most
    directories' pages are not indexed by name anyway, and a duplicate
-   submission is caught by the site. Found: mark `approved`, evidence =
-   listing URL, and move on.
+   submission is caught by the site. A hit means a result whose link points
+   at the product's domain (open it and check the address bar or the outbound
+   link); a result that merely contains the product's words is not a hit.
+   Found: mark `approved`, evidence = listing URL, and move on.
 4. **Classify the page** you see (paid wall, account, captcha, badge,
    personal fields) and compare with `permissions`. Follow
    [references/gates.md](references/gates.md) for that gate.
 5. **Fill the form** following
    [references/field-mapping.md](references/field-mapping.md). Read the whole
-   form, including its last step, before typing.
+   form, including its last step, before typing. A field that will not take
+   input, a dropdown that will not open, a button off screen or a rich-text
+   box: use the matching move in
+   [references/form-tricks.md](references/form-tricks.md) once, then count
+   further retries against the per-site budget.
 6. **Submit** with the real submit control, then wait and read the result.
 7. **Confirmation seen:** note the check URL (the listing, a status page, or
    the page you are on; evidence.md says how to pick), save a screenshot to
    `evidence/` and call `mark_status` right away with evidence that starts
    with `Check: <url>`, as described in
-   [references/evidence.md](references/evidence.md).
+   [references/evidence.md](references/evidence.md). Whenever the listing
+   itself is live (an `approved` mark, now or on a follow-up), read the
+   `rel` attribute of its link to the product and add `link: dofollow` or
+   `link: nofollow <rel value>` to the evidence; the record's `linkType` is
+   often wrong and this is the only reliable check.
 8. **No clear result:** follow "Outcome unknown" below.
 9. **Keep a note** of the site, outcome, check URL and screenshot path; the
    unmarked ones (captcha, account, unknown) only exist in your notes and
@@ -303,6 +338,12 @@ The run should not stall on one site. Stop the run only for:
 
 Everything else is a note, not a stop:
 
+- a site that eats the budget: about 8 browser actions (or 6 minutes) on one
+  site without visible progress, such as a field that will not take input, a
+  button that will not react, an upload that keeps failing. Leave it unmarked,
+  write one line of note (what you tried, where it stuck) and the submit URL
+  for the report, and move on. Come back only if time is left at the end.
+  The user can finish it by hand faster than you can keep retrying;
 - a required fact missing from the profile and `extra`: leave the site
   unmarked, put the question in the "Needs you" list, and continue; ask all
   collected questions together at the end (or at a natural break), save the
@@ -403,6 +444,8 @@ Leave out empty checklist lines.
 - [references/email-verification.md](references/email-verification.md): mailbox check, codes, magic links
 - [references/evidence.md](references/evidence.md): what counts as confirmation, wording, screenshots
 - [references/complex-sites.md](references/complex-sites.md): Product Hunt, G2, Capterra-type outlines
+- [references/form-tricks.md](references/form-tricks.md): React inputs, custom dropdowns, off-screen buttons, rich text
 - `templates/profile.json`: profile template
 - `templates/report.html`: report page, fill the JSON block
 - `scripts/preflight.mjs`: profile check (`--dir`, `--json`)
+- `scripts/probe.mjs`: batch HTTP probe of submit pages (`--input`, `--json`, `--concurrency`, `--timeout`)

@@ -66,8 +66,31 @@ Batch these instead of waiting on each one:
 
 `allowRegistration` true (the user wants you to handle accounts yourself):
 
+0. Before creating any account, spend a minute on the price. Look at the
+   pricing page, the first screen of the submit page, a "Pricing" link in
+   the footer, and the record's `pricing`, `priceText` and `verdict`.
+   - Clearly paid (a price on the only path, or the verdict says paid only):
+     mark `unusable` ("paid only: <price>") and do not register.
+   - Clearly free, or nothing to be found either way: go on. Many sites show
+     the price only after login or on the last step; one spare account costs
+     less than a missed listing.
+   - When you register without having seen a free path, write
+     `accounts.sites[<domain>]` with `note: "account created <date>, free path
+     not confirmed yet"`. If a paywall shows up after login, mark `unusable`
+     with the price and keep that record, so the next run (or a run with
+     `allowPaid`) does not register again.
 1. Use `accounts.sites[<domain>]` if it exists, else `accounts.default`.
    Try "Sign in" first (the account may already exist), then "Sign up".
+1b. The account is a person, not the product. Username or handle:
+   `accounts.default.username`; if null, derive one from
+   `contact.submitterName` (for example `jackwilliam`, `jack.william`,
+   `jwilliam`, with two or three digits appended when the site says it is
+   taken) and save it to `accounts.default.username` so every site gets the
+   same handle. Display name, "your name", profile name: `submitterName`.
+   Never use the product name, brand or domain as a username, display name or
+   profile handle; the product goes only into the listing's own fields.
+   Avatar: leave the default, or use a neutral image the user provided; not
+   the product logo.
 2. With an email and password: fill them in, submit, finish any email
    verification through the mailbox tab (email-verification.md), then
    continue as open-form. Do not stop to ask; the user gave you these for
@@ -95,15 +118,24 @@ captcha-solving service.
 
 `allowCaptchaHandoff` true (default):
 
-1. Fill every other field and stop with the captcha on screen. Do not click
-   the final submit.
-2. Keep that tab open. Open the next site in a new tab.
-3. Tell the user right away: site name, tab, "solve the captcha and press
-   Submit, then tell me". If the user is away, collect these and list them
-   together at a natural break.
-4. When the user says it's done, look at the tab, read the result, and mark
-   as usual. If the user says they submitted but the page shows no result, use
-   the "user reports" evidence wording from evidence.md.
+Captcha tokens expire within minutes, and filled tabs left open go stale
+(session timeouts, tab limits in the browser tool). So hand over one site at a
+time, never a pile.
+
+1. User present: fill every other field, re-read the form once to make sure
+   it is still intact, and stop with the captcha on screen. Do not click the
+   final submit.
+2. Tell the user right away: site name, tab, "solve the captcha and press
+   Submit, then tell me". Wait for that site; do not open the next captcha
+   site in the meantime (open-form work on another tab is fine).
+3. When the user says it's done, look at the tab at once, read the result,
+   mark as usual, and close the tab. If the user says they submitted but the
+   page shows no result, use the "user reports" evidence wording from
+   evidence.md. If the form came back with "captcha expired", refill once,
+   then hand over again.
+4. User away: do not pre-fill captcha sites. Note the site and its submit URL
+   and list them under "Captcha tabs to finish"; do them together in a later
+   sitting, still one at a time.
 
 `allowCaptchaHandoff` false: skip the site, leave it unmarked, list it.
 

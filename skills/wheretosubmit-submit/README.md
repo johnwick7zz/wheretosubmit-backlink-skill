@@ -20,7 +20,7 @@ as submitted after it saw a confirmation.
   Claude in Chrome, the desktop built-in browser and Playwright MCP work too.
 - Optional: a mail tool (Gmail MCP, an IMAP script, or similar) for sites
   that confirm by email.
-- Optional: Node 20+ for the profile check script.
+- Optional: Node 20+ for the profile check and the batch probe scripts.
 
 ## 1. Connect the MCP server
 
@@ -99,6 +99,7 @@ SKILL.md                         workflow the agent follows
 templates/profile.json           product profile template
 templates/report.html            report page the agent fills after each run
 scripts/preflight.mjs            profile check, no dependencies
+scripts/probe.mjs                batch HTTP probe of submit pages: form / login / paid / dead, before opening the browser
 scripts/lib/                     helpers for the check
 references/profile-schema.md     profile fields and limits
 references/field-mapping.md      how forms are filled

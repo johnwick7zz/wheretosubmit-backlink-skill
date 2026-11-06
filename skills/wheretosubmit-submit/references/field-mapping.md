@@ -81,6 +81,8 @@ save the translation as `copy.<lang>` and have them confirm it.
 | Screenshots, gallery | `assets.screenshots` in order |
 | Video | `assets.demoVideoUrl` |
 | Your name | `contact.submitterName`, else `founderName` |
+| Username, handle, nickname | `accounts.default.username`; if null, derive from `submitterName` and save it (gates.md, account 1b). Never the product name or domain |
+| Display name, profile name, author | `contact.submitterName`. Never the product name |
 | Founder, maker | `contact.founderName` |
 | Email | `contact.email` |
 | Role, job title | `contact.role`; leave empty if null and optional |
@@ -105,5 +107,9 @@ save the translation as `copy.<lang>` and have them confirm it.
 
 1. Re-read every filled field. Check no field got the wrong value from
    autofill and no text got cut.
+1b. Check every pre-selected choice, not only the fields you typed in: the
+   plan or tier radio (sites preselect the paid one), "feature me" or
+   "add to ranking" boxes, newsletter opt-ins, and the quantity or duration
+   of a listing. Set each to the free, plain option before you continue.
 2. Click the real submit control. Do not trigger submit in other ways.
 3. Wait for the result and read it; see evidence.md for what counts.

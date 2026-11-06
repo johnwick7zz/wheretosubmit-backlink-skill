@@ -126,7 +126,7 @@ here stays on the user's machine.
 | --- | --- | --- |
 | `default.email` | email or null | the account the agent registers or signs in with on directories |
 | `default.password` | string or null | null = use the Google/GitHub session already open in the browser for that email, else ask once |
-| `default.username` | string or null | for sites that want a handle |
+| `default.username` | string or null | the person's handle for sites that want one. Derived from `contact.submitterName` when null (never the product name or domain); the agent saves what it used |
 | `mailbox.url` | URL or null | webmail to open for verification codes; null = pick from the email's domain (163, 126, QQ, Gmail, Outlook) |
 | `mailbox.email` / `mailbox.password` | string or null | null = reuse `default` |
 | `sites` | map | per-domain overrides `{ "<domain>": { email, password, username, note } }`, written by the agent when a site forced a different credential |

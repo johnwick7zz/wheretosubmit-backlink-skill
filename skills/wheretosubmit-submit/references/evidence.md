@@ -35,6 +35,10 @@ Counts:
   `?success=1` together with the message).
 - A confirmation email from the site's domain that names the product.
 - The listing itself, live on the site (this is `approved`, not `submitted`).
+  Note the link while you are there: `link: dofollow` when the anchor to the
+  product has no `rel` or only `noopener`; `link: nofollow <rel>` otherwise
+  (`nofollow`, `ugc`, `sponsored`). Read the DOM or page source, not the
+  record.
 - The user telling you they finished the step themselves (captcha, payment)
   and you then seeing one of the above. If you only have their word, say so in
   the evidence: "user reports they submitted; no confirmation seen by agent".

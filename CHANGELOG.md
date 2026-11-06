@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.5.0 (2026-11-06)
+
+Fewer wasted minutes per site, after a full run's feedback.
+
+- `wheretosubmit-submit`: new `scripts/probe.mjs` fetches every submit page
+  at once (plain HTTP) and sorts targets into form / unknown / captcha /
+  login / paid / no-form / blocked / dead before the browser opens anything.
+  Target selection uses `next_targets` with `brief: true`, `excludeDomains`
+  for sites opened but not marked this run, and `cursor` for the next page.
+- `wheretosubmit-submit`: per-site budget (about 8 browser actions without
+  progress: leave a note and move on); CAPTCHA handoff one site at a time,
+  checked right after the user solves it, never a pile of waiting tabs.
+- `wheretosubmit-submit`: before registering, check the price on the pricing
+  page, submit page and the record; clearly paid sites are `unusable` without
+  an account, uncertain ones get an account noted in `accounts.sites` so a
+  paywall found after login is not paid for twice in time.
+- `wheretosubmit-submit`: accounts are a person, not the product. Username
+  and display name come from `accounts.default.username` /
+  `contact.submitterName`, never from the product name or domain.
+- `wheretosubmit-submit`: duplicate check matches the product's domain in
+  result links, not words; every pre-selected tier, ranking or opt-in box is
+  checked before submit; live listings get their link's `rel` read into the
+  evidence (`link: dofollow` / `link: nofollow ugc`).
+- `wheretosubmit-submit`: new `references/form-tricks.md` for React inputs,
+  custom dropdowns, off-screen buttons, rich-text editors and uploads.
+- docs: `next_targets` gained `cursor` / `nextCursor`, `excludeDomains` and
+  `brief` (server side ships separately; older servers ignore the new
+  parameters).
+
 ## 0.4.0 (2026-11-05)
 
 Faster runs, and the agent handles accounts and mail itself.
