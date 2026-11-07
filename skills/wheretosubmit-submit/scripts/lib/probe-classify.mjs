@@ -144,6 +144,37 @@ export function classify(f) {
   return { ...base, class: 'no-form', signals };
 }
 
+/** Link text or path that usually leads to a directory's submit page. */
+const SUBMIT_HINT = /submit|add[-_ ]?(your[-_ ]?|a[-_ ]?)?(tool|site|product|startup|app|listing|link|project)|list[-_ ]your|get[-_ ]listed|suggest[-_ ]a|post[-_ ]a[-_ ]?(tool|product|startup)|launch[-_ ]your/i;
+const ANCHOR = /<a\b[^>]*?\bhref=["']([^"'#]+)["'][^>]*>([\s\S]{0,300}?)<\/a>/gi;
+
+/**
+ * Same-site links on a homepage that look like the way to submit, best guess
+ * first, at most `max`. Used when the record has a homepage but no submit URL.
+ * @param {string} html @param {string} baseUrl @param {number} [max]
+ * @returns {string[]}
+ */
+export function findSubmitLinks(html, baseUrl, max = 3) {
+  const host = hostOf(baseUrl);
+  /** @type {string[]} */ const found = [];
+  if (host === '') return found;
+  for (const m of html.matchAll(ANCHOR)) {
+    const href = m[1] ?? '';
+    const text = (m[2] ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!SUBMIT_HINT.test(href) && !SUBMIT_HINT.test(text)) continue;
+    let abs;
+    try {
+      abs = new URL(href, baseUrl).href;
+    } catch {
+      continue;
+    }
+    if (!/^https?:/i.test(abs) || hostOf(abs) !== host || found.includes(abs)) continue;
+    found.push(abs);
+    if (found.length >= max) break;
+  }
+  return found;
+}
+
 /**
  * Sorts results for the report: easy classes first, then by domain.
  * @param {ProbeResult[]} results

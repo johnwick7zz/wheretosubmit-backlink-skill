@@ -22,6 +22,7 @@ Look at the submit page and its last step:
 | "Add our badge / link back to us before we review" | reciprocal |
 | A price on the only path to a listing, or checkout on the last step | paid |
 | Required phone, street address, company registration, tax id | personal-contact |
+| "Rate 2 products", "leave a comment", "visit 5 tools" before or after submitting | community task |
 | Anything else: contact page only, email-only submission, broken form | unknown |
 
 Invisible checks (Cloudflare Turnstile that passes by itself, reCAPTCHA v3)
@@ -152,6 +153,34 @@ The site wants a badge or link on the product site before it lists you.
    snippet and placement, leave the site unmarked, and list it in the report
    under "badges to add". On the next run, once the badge is live, submit.
 4. At the end of the run, list every badge the user has to embed.
+
+## community task
+
+The site asks for activity on its own pages: rate other products, comment on
+them, visit a few listings, upvote. It may come before the form or show up
+only on the confirmation page or in a "next step" email. Examples:
+
+- RadarMakers: while a product waits, rate 2 products and write 1 comment of
+  at least 40 characters on another maker's product to reach the priority
+  list. The queue is otherwise slow, so treat it as part of the submission.
+- ToolScout: the form needs 5 community tools visited first.
+
+Do it in the same run, right after the submission, not as an optional extra:
+
+1. Read the exact wording on the page and in the site's email. Note the
+   numbers and limits.
+2. Use the account that owns the listing. Never the product's own listing.
+3. Open each product and read its page before acting. Rate from what you read,
+   and write a comment that says something specific about that product. No
+   generic praise, no link, no mention of the user's product.
+4. Do no more than the site asks for. A task that costs money, needs a
+   `neverShare` field, or asks to rate things you cannot open: skip it and say
+   so.
+5. Check the site's own counter or status page to see the task registered.
+6. Put the result in the evidence: what the site asked for, what you did, and
+   what the status page now says. If it stays undone, say that in the evidence,
+   and list it under "Needs you" in the report. Never leave it as a passing
+   remark in the evidence alone.
 
 ## paid
 

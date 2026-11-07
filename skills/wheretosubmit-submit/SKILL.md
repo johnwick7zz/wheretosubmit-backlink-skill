@@ -195,15 +195,21 @@ rows: step 10 writes them into the report.
 
 ### 8. Choose targets
 
-1. Ask how many sites (default 10) and whether to focus on a category.
+1. Ask how many sites (default 10). Do not ask about categories and do not
+   pass `category`: the goal is every site that costs nothing, whatever its
+   niche. Use `category` only when the user asks for one.
 2. Call `next_targets` with the project id, `brief: true`, and a `limit`
    about twice the number you need, so there is room to drop sites. Add
-   `pricing: "free"` unless `allowPaid` is true, and `linkType: "dofollow"`
-   when the user wants links that count (unchecked sites are then left out;
-   drop the filter to include them). `category` narrows to relevant
-   directories. Put every domain you opened earlier this run but left
-   unmarked (captcha waiting, outcome unknown, over budget) in
-   `excludeDomains`, so they do not come back. Need more: call again with
+   `pricing: "not_paid"` (free plus not-yet-checked) unless `allowPaid` is
+   true; do not narrow it to `"free"`, most free sites are still marked
+   `unknown`. Add `linkType: "dofollow"` only when the user asks for links
+   that count (unchecked sites are then left out). The list comes in two
+   groups: sites with a known `submitUrl` first, then sites with only a
+   `homepageUrl` (`submitUrl` null, `gated` false). Both are targets: for
+   the second group you find the submit page yourself (step 9). Put every
+   domain you opened earlier this run but left unmarked (captcha waiting,
+   outcome unknown, over budget) in `excludeDomains`, so they do not come
+   back. Need more: call again with
    the returned `nextCursor` instead of changing filters. The brief list has
    no tips or method; `get_site` in step 9 brings those for the sites you
    keep.
@@ -219,15 +225,21 @@ rows: step 10 writes them into the report.
    node <skill-folder>/scripts/probe.mjs --input <workspace>/targets.json
    ```
 
-   It fetches every submit page at once (plain HTTP, a few seconds) and
-   sorts them: `form` (a form with a URL field; open these first), `unknown`
+   It fetches every submit page at once (plain HTTP, a few seconds); for a
+   homepage-only site it fetches the homepage and lists same-site links that
+   look like a submit page (`homepage only; submit link: ...`). It sorts
+   them: `form` (a form with a URL field; open these first), `unknown`
    (JS-rendered, open and see), `captcha`, `login` (account gate), `paid`
    (prices and no free wording; handle per gates.md or skip), `no-form`,
    `blocked` (bot wall; a real browser may pass), `dead` (connection error,
    404, parked). Use it to order and to drop: open a `dead` site once in the
-   browser to confirm, then mark `unusable`; put `paid` ones last. The probe
-   reads static HTML only, so it is a hint; the page you open decides.
-4. Order the rest by `gate`: `open-form` first, then `email-verify` and
+   browser to confirm, then mark `unusable`; put `paid` ones last. For a
+   homepage-only row the class describes the homepage: `dead` still means
+   dead, but `paid` or `no-form` there says nothing about the submit page,
+   so do not drop it for that. The probe reads static HTML only, so it is a
+   hint; the page you open decides.
+4. Keep sites with a known `submitUrl` ahead of homepage-only ones, then
+   order by `gate`: `open-form` first, then `email-verify` and
    `account` (both work on their own once the mailbox is open), then
    `reciprocal`, and `captcha` last, grouped together so the user can solve
    them in one sitting. Within a gate, put sites whose verdict names a free
@@ -249,7 +261,14 @@ For each site:
 1. **Read the record.** Call `get_site` with `siteId` and `projectId`. If
    `mark` is not null, someone already marked it: skip. Read `gate`,
    `submitUrl`, `submissionMethod`, `tips`, `pricing` and `priceText`. If
-   `gated` is true, find the submit page from `homepageUrl` yourself.
+   `submitUrl` is null (`gated` true, or no submit page on file), find the
+   submit page from `homepageUrl` yourself: start with the probe's submit
+   link, else the header, footer and menu ("Submit", "Add tool", "List your
+   product", "Get listed"), else one try of `/submit`. Count this against
+   the per-site budget. No way to submit found: mark `unusable` with
+   "no submit page found on <homepage>". A homepage that turns out to be a
+   blog, a social network or a bookmark site with no listing to submit to is
+   `unusable` too ("not a submission site").
 2. **Open the site** in the browser, in a new tab.
 3. **Look for an existing listing.** One check, not three: use the site's
    own search for the product name (and the domain if the first search is
@@ -271,7 +290,13 @@ For each site:
    [references/form-tricks.md](references/form-tricks.md) once, then count
    further retries against the per-site budget.
 6. **Submit** with the real submit control, then wait and read the result.
-7. **Confirmation seen:** note the check URL (the listing, a status page, or
+7. **Read the whole confirmation page, then the site's next email.** Both
+   often carry a further step (a badge, a verification, a community task from
+   gates.md). A sentence like "to move up the queue, do X" is a task, not
+   background text: do it now or list it under "Needs you". On the next
+   mailbox round, open every message from the site with a subject such as
+   "next step" or "action required"; do not judge them from the inbox list.
+8. **Confirmation seen:** note the check URL (the listing, a status page, or
    the page you are on; evidence.md says how to pick), save a screenshot to
    `evidence/` and call `mark_status` right away with evidence that starts
    with `Check: <url>`, as described in
@@ -280,11 +305,11 @@ For each site:
    `rel` attribute of its link to the product and add `link: dofollow` or
    `link: nofollow <rel value>` to the evidence; the record's `linkType` is
    often wrong and this is the only reliable check.
-8. **No clear result:** follow "Outcome unknown" below.
-9. **Keep a note** of the site, outcome, check URL and screenshot path; the
+9. **No clear result:** follow "Outcome unknown" below.
+10. **Keep a note** of the site, outcome, check URL and screenshot path; the
    unmarked ones (captcha, account, unknown) only exist in your notes and
    are needed for the report.
-10. **Learned something?** Save new length variants to `copy` and new answers
+11. **Learned something?** Save new length variants to `copy` and new answers
     to `extra` in the profile.
 
 #### Which mark to write
@@ -295,6 +320,8 @@ For each site:
 | Submitted, listing visible right away | `approved` | none |
 | Confirmation seen, site reviews by hand | `submitted` | `awaiting_review` |
 | Confirmation seen, badge or backlink required | `submitted` | `badge` |
+| Confirmation seen, community task done | `submitted` | `awaiting_review` |
+| Confirmation seen, community task not done | `submitted` | `awaiting_review`, and list it under "Needs you" |
 | Page asked to confirm by email, not completed | `submitted` | `verify_email` |
 | Dead, paid only, no form, off-topic, needs a `neverShare` field | `unusable` | none |
 | Site said no (page or email) | `rejected` | none |
@@ -426,6 +453,7 @@ Needs you:
 - [ ] Captcha tabs to finish: <site, tab>
 - [ ] Badges to embed: <site>: <snippet or evidence file>, place: <where>
 - [ ] Emails to verify: <site>
+- [ ] Community tasks not done: <site>: <what the site asks for>
 - [ ] Sites that need your account: <site, sign-up URL>
 - [ ] Outcome unknown: <site, time submitted>
 - [ ] Questions: <what you need answered>

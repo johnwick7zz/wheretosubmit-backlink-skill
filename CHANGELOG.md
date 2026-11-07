@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0 (2026-11-07)
+
+Every site that costs nothing is a target, not only the ones with a known
+submit page.
+
+- `wheretosubmit-submit`: `next_targets` is called with `pricing: "not_paid"`
+  (free plus not-yet-checked) instead of `"free"`, and the skill no longer
+  asks about or filters by category.
+- `wheretosubmit-submit`: sites with only a homepage on file are targets too.
+  The agent finds the submit page from the homepage (probe link, header,
+  footer, one try of `/submit`) and marks `unusable` when there is none or
+  the site is not a submission site.
+- `wheretosubmit-submit`: `scripts/probe.mjs` probes the homepage of such
+  sites and lists same-site links that look like a submit page.
+- `wheretosubmit-submit`: community tasks (rate products, write a comment,
+  "next step" emails) are part of the submission; new section in
+  `references/gates.md`, and the confirmation page and the site's next email
+  are read in full.
+- docs: `next_targets` returns homepage-only sites after the ones with a
+  submit page (`requireSubmitUrl: true` for the old behaviour), accepts
+  `pricing: "not_paid"`, and `brief` carries `homepageUrl` (server side is
+  already live).
+
 ## 0.5.0 (2026-11-06)
 
 Fewer wasted minutes per site, after a full run's feedback.

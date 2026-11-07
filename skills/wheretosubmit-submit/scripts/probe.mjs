@@ -8,10 +8,12 @@
 //   node probe.mjs https://a.com/submit https://b.io/add
 //
 // targets.json is the next_targets result ({ targets: [...] }), a bare array of
-// such items, or an array of URLs. Items without submitUrl (gated) are skipped.
+// such items, or an array of URLs. Items without submitUrl but with homepageUrl
+// (no submit page on file) are probed on the homepage, and same-site links that
+// look like a submit page are listed. Gated items with neither are skipped.
 // Exit codes: 0 done, 2 bad arguments. A site that fails is a result, not an error.
 import { readFileSync } from 'node:fs';
-import { classify, hostOf, sortResults } from './lib/probe-classify.mjs';
+import { classify, findSubmitLinks, hostOf, sortResults } from './lib/probe-classify.mjs';
 
 const USAGE = `Usage: node probe.mjs (--input <targets.json> | <url> ...) [--json] [--concurrency N] [--timeout MS]
 
@@ -67,9 +69,9 @@ function parseArgs(argv) {
 }
 
 /**
- * Turns whatever the agent saved into a list of { url, domain, name }.
+ * Turns whatever the agent saved into a list of probe targets.
  * @param {unknown} data
- * @returns {{ url: string, domain: string, name: string }[]}
+ * @returns {Target[]}
  */
 function toTargets(data) {
   const list = Array.isArray(data)
@@ -78,22 +80,27 @@ function toTargets(data) {
       ? /** @type {{ targets: unknown[] }} */ (data).targets
       : null;
   if (list === null) throw new Error('input must be a next_targets result or an array');
-  /** @type {{ url: string, domain: string, name: string }[]} */
+  /** @type {Target[]} */
   const targets = [];
   for (const item of list) {
     if (typeof item === 'string') {
-      if (/^https?:\/\//i.test(item)) targets.push({ url: item, domain: hostOf(item), name: '' });
+      if (/^https?:\/\//i.test(item)) targets.push({ url: item, domain: hostOf(item), name: '', homepage: false });
       continue;
     }
     if (item === null || typeof item !== 'object') continue;
     const rec = /** @type {Record<string, unknown>} */ (item);
-    const url = typeof rec.submitUrl === 'string' ? rec.submitUrl : typeof rec.url === 'string' ? rec.url : null;
+    const submit = typeof rec.submitUrl === 'string' ? rec.submitUrl : typeof rec.url === 'string' ? rec.url : null;
+    // Gated items hide submitUrl behind the plan; only fall back to the homepage when nothing is on file
+    const home = rec.gated !== true && typeof rec.homepageUrl === 'string' ? rec.homepageUrl : null;
+    const url = submit ?? home;
     if (url === null || !/^https?:\/\//i.test(url)) continue;
     const domain = typeof rec.domain === 'string' && rec.domain !== '' ? rec.domain.replace(/^www\./, '') : hostOf(url);
-    targets.push({ url, domain, name: typeof rec.name === 'string' ? rec.name : '' });
+    targets.push({ url, domain, name: typeof rec.name === 'string' ? rec.name : '', homepage: submit === null });
   }
   return targets;
 }
+
+/** @typedef {{ url: string, domain: string, name: string, homepage: boolean }} Target */
 
 /**
  * Fetches one page, following redirects, reading at most MAX_BODY of text.
@@ -173,6 +180,7 @@ function printText(results, names) {
   for (const r of results) counts[r.class] = (counts[r.class] ?? 0) + 1;
   out(`\n${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}\n`);
   out('form = open it first; unknown = JS page, open and see; login/paid/captcha = handle per gates.md; dead = mark unusable after one look.\n');
+  out('homepage only = no submit page on file: the class is about the homepage; start from the listed submit link, else look for one by hand.\n');
 }
 
 async function main() {
@@ -186,8 +194,8 @@ async function main() {
     return 2;
   }
 
-  /** @type {{ url: string, domain: string, name: string }[]} */
-  let targets = args.urls.map((url) => ({ url, domain: hostOf(url), name: '' }));
+  /** @type {Target[]} */
+  let targets = args.urls.map((url) => ({ url, domain: hostOf(url), name: '', homepage: false }));
   if (args.input !== null) {
     try {
       targets = targets.concat(toTargets(JSON.parse(readFileSync(args.input, 'utf8'))));
@@ -200,13 +208,23 @@ async function main() {
   const seen = new Set();
   targets = targets.filter((t) => t.domain !== '' && !seen.has(t.url) && seen.add(t.url));
   if (targets.length === 0) {
-    process.stderr.write('no probeable targets (gated items have no submitUrl)\n');
+    process.stderr.write('no probeable targets (gated items have no submitUrl or homepageUrl)\n');
     return 2;
   }
 
   const results = await mapLimit(targets, args.concurrency, async (t) => {
     const page = await fetchPage(t.url, args.timeout);
-    return classify({ url: t.url, domain: t.domain, ...page });
+    const result = classify({ url: t.url, domain: t.domain, ...page });
+    if (!t.homepage) return result;
+    // Homepage only: the class says whether the site is alive; the links are where to look for the form
+    const submitLinks = result.class === 'dead' ? [] : findSubmitLinks(page.html, page.finalUrl ?? t.url);
+    const hint =
+      submitLinks.length > 0
+        ? `homepage only; submit link: ${submitLinks.join(' , ')}`
+        : result.class === 'dead'
+          ? 'homepage only'
+          : 'homepage only; no submit link in static HTML';
+    return { ...result, homepage: true, submitLinks, signals: [hint, ...result.signals] };
   });
   const sorted = sortResults(results);
 
